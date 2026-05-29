@@ -103,9 +103,11 @@ If you find issues, missing documentation, or ideas for improvement, feel free t
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the Apache License 2.0.
 
-Use it, modify it, learn from it, and build upon it.
+You are free to use, modify, distribute, and build upon this project in both personal and commercial environments, provided that the original license and copyright notice are preserved.
+
+See the `LICENSE` file for full details.
 
 ---
 
