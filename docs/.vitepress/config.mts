@@ -55,16 +55,6 @@ export default defineConfig({
               { text: "SVM", link: "/libraries/fezrs/svm" },
             ],
           },
-
-          {
-            text: "FEZcc",
-            link: "/libraries/fezcc",
-          },
-
-          {
-            text: "FEZsies",
-            link: "/libraries/fezseis",
-          },
         ],
       },
 
