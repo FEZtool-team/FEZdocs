@@ -1,5 +1,6 @@
+# Change Detection
 
-### 1. Module Introduction
+### 1. Introduction
 
 This module contains a set of tools for analysing **temporal changes** in satellite images. The main goal is to identify and quantify changes that have occurred between two time periods – typically before and after an event such as a fire, a flood, or land‑use modification.
 
@@ -156,7 +157,7 @@ $$\vec{V} = (NIR_{after} - NIR_{before}, SWIR1_{after} - SWIR1_{before})$$
 - **Magnitude of change :**  
     The Euclidean length of $\vec{V}$ quantifies the total spectral change :
     
-$$|\vec{V}| = \sqrt{(NIR_{after} - NIR_{before})^2 + (SWIR1_{after} - SWIR1_{before})^2}$$
+    $$|\vec{V}| = \sqrt{(NIR_{after} - NIR_{before})^2 + (SWIR1_{after} - SWIR1_{before})^2}$$
     
     Larger magnitude implies a stronger alteration, regardless of its nature. This is particularly useful for rapidly identifying hotspots of change (e.g., logging, fire, urban expansion).
     
@@ -217,12 +218,12 @@ Two operations are provided :
 
 - **Subtraction :**
 	
-$$\Delta = Band_{\text{before}} - Band_{\text{after}}$$        
+    $$\Delta = Band_{\text{before}} - Band_{\text{after}}$$        
     This gives the absolute change in reflectance (or digital number). Positive values imply a reduction of reflectance after the event (e.g., vegetation loss), and negative values indicate an increase (e.g., sediment deposition, new built‑up). The result retains the original physical units of the band and is sensitive to the overall brightness of the scene.
     
 - **Division (ratio) :**
 	
-$$R = \frac{Band_{before}}{Band_{after}}$$    
+    $$R = \frac{Band_{before}}{Band_{after}}$$    
     The ratio compensates for illumination differences and multiplicative noise. A ratio of 1 means no change; >1 indicates the before value was larger (a decrease after the event); <1 indicates an increase after the event. Ratios are inherently non‑negative and can become very large if the denominator is near zero, so a small epsilon can be added in future versions to avoid division‑by‑zero errors.
     
 
