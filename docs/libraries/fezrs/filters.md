@@ -38,13 +38,13 @@ Apply a low‑pass filter with a Gaussian‑shaped kernel to suppress high‑fre
 - **Gaussian kernel definition :**  
     The 2D isotropic Gaussian kernel has the form
     
-$$G(x, y) = \frac{1}{2\pi\sigma^2} \exp\left(-\frac{x^2 + y^2}{2\sigma^2}\right)$$
+    $$G(x, y) = \frac{1}{2\pi\sigma^2} \exp\left(-\frac{x^2 + y^2}{2\sigma^2}\right)$$
     
     where $σ$ is the standard deviation controlling the width of the bell curve. A larger $σ$ produces stronger smoothing.
     
 - In OpenCV’s `GaussianBlur`, the user specifies the kernel size (width, height) – which must be odd and positive – and the standard deviation in the X and Y directions. If the standard deviation is set to 0 (as in this code), it is automatically computed from the kernel size as
     
-$$\sigma = 0.3 \cdot \left( \frac{k \cdot size - 1}{2} - 1 \right) + 0.8$$
+    $$\sigma = 0.3 \cdot \left( \frac{k \cdot size - 1}{2} - 1 \right) + 0.8$$
     
     For a kernel size of 13×13, this yields an effective $σ≈0.3⋅(6−1)+0.8=2.3$. The kernel is then discretised and normalised so that the sum of all coefficients equals 1, preserving the image’s overall brightness.
     
@@ -83,26 +83,26 @@ Compute the second spatial derivative of the image intensity to highlight region
 - **Laplacian operator :**  
     For a 2D continuous function $f(x,y)$, the Laplacian is defined as the sum of the second partial derivatives :
     
-$$\nabla^2 f = \frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2}$$
+    $$\nabla^2 f = \frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2}$$
     
     In the discrete domain, the Laplacian is approximated by a convolution kernel. The OpenCV `Laplacian` function uses a kernel derived from central finite differences. A common 3×3 approximation (which OpenCV scales depending on `ksize`) is :
     
-$$K_L = 
-\begin{bmatrix}
-0 & 1 & 0 \\
-1 & -4 & 1 \\
-0 & 1 & 0
-\end{bmatrix}$$
+    $$K_L = 
+    \begin{bmatrix}
+    0 & 1 & 0 \\
+    1 & -4 & 1 \\
+    0 & 1 & 0
+    \end{bmatrix}$$
     
     or the “eight‑neighbour” variant :
     
-$$\begin{bmatrix}
-1 & 1 & 1 \\
-1 & -8 & 1 \\
-1 & 1 & 1
-\end{bmatrix}$$
+    $$\begin{bmatrix}
+    1 & 1 & 1 \\
+    1 & -8 & 1 \\
+    1 & 1 & 1
+    \end{bmatrix}$$
     
-    For larger kernel sizes, OpenCV extends the approximation to incorporate more neighbours, but the principle remains : the centre weight is negative and the surrounding weights are positive, summing to zero so that homogeneous regions produce zero output.
+    For larger kernel sizes, OpenCV extends the approximation to incorporate more neighbours, but the principle remains: the centre weight is negative and the surrounding weights are positive, summing to zero so that homogeneous regions produce zero output.
     
 - **Interpretation of the output :**
     
@@ -146,14 +146,14 @@ Perform a simple uniform averaging over a square neighbourhood to blur the image
 - **Mean filter kernel :**  
     The mean (or box) filter replaces each pixel with the arithmetic mean of all pixels inside a kernel of size $k×k$. The kernel coefficients are all equal:
     
-$$K_{mean}(i,j) = \frac{1}{k^2} \quad \text{for all } i, j$$
+    $$K_{mean}(i,j) = \frac{1}{k^2} \quad \text{for all } i, j$$
     
     For the fixed kernel size used in the code ($9×9$), the kernel is a 9×9 matrix with each entry = $1/81$.
     
 - **Mathematical operation :**  
     If $W$ denotes the set of pixel indices in the window of size $k×k$ centred at $(x,y)$,
     
-$$I'(x, y) = \frac{1}{k^2} \sum_{(u, v) \in W} I(u, v)$$
+    $$I'(x, y) = \frac{1}{k^2} \sum_{(u, v) \in W} I(u, v)$$
     
     This is equivalent to convolution with the constant kernel.
     
@@ -195,7 +195,7 @@ Replace each pixel with the median value of its neighbourhood. This non‑linear
 - **Median operation :**  
     For a window of size $k×k$ centred at $(x,y)$, collect all pixel values into a list, sort them, and pick the middle element :
     
-$$I'(x, y) = \text{median} \{I(u, v) \mid (u, v) \in W \}$$
+    $$I'(x, y) = \text{median} \{I(u, v) \mid (u, v) \in W \}$$
     
     The kernel size in the code is user‑defined and must be an odd integer (e.g., 3, 5, 7). With `ksize=5`, the window contains 25 pixels.
     
@@ -243,23 +243,23 @@ Compute an approximation of the gradient of the image intensity function. The So
 - **Gradient and the Sobel operator :**  
     The gradient of an image $I(x,y)$ is the vector :
     
-$$\nabla I = \begin{bmatrix} \frac{\partial I}{\partial x} & \frac{\partial I}{\partial y} \end{bmatrix}$$
+    $$\nabla I = \begin{bmatrix} \frac{\partial I}{\partial x} & \frac{\partial I}{\partial y} \end{bmatrix}$$
     
     The magnitude of the gradient $∥∇I∥$ indicates how rapidly the intensity changes at a point, thus highlighting edges. The Sobel operator convolves the image with two 3×3 kernels (for a kernel size of 3) to approximate the derivatives. For larger kernel sizes, the operator is extended to smooth the derivatives over a larger area.
     
     The standard Sobel kernels for $ksize=3$ are :
     
-$$G_x = 
-\begin{bmatrix}
--1 & 0 & +1 \\
--2 & 0 & +2 \\
--1 & 0 & +1
-\end{bmatrix}, \quad G_y = 
-\begin{bmatrix}
--1 & -2 & -1 \\
-0 & 0 & 0 \\
-+1 & +2 & +1
-\end{bmatrix}$$
+    $$G_x = 
+    \begin{bmatrix}
+    -1 & 0 & +1 \\
+    -2 & 0 & +2 \\
+    -1 & 0 & +1
+    \end{bmatrix}, \quad G_y = 
+    \begin{bmatrix}
+    -1 & -2 & -1 \\
+    0 & 0 & 0 \\
+    +1 & +2 & +1
+    \end{bmatrix}$$
     
     where $G_x$​ detects vertical edges, and $G_y$​ detects horizontal edges.
     
@@ -269,7 +269,7 @@ $$G_x =
 - **Mathematical meaning :**  
     For each pixel :
     
-$$\text{output} \approx \left| \frac{\partial I}{\partial x} \right| + \left| \frac{\partial I}{\partial y} \right| \quad \text{or} \quad \left| \frac{\partial I}{\partial x} \right| + \left| \frac{\partial I}{\partial y} \right|$$
+    $$\text{output} \approx \left| \frac{\partial I}{\partial x} \right| + \left| \frac{\partial I}{\partial y} \right| \quad \text{or} \quad \left| \frac{\partial I}{\partial x} \right| + \left| \frac{\partial I}{\partial y} \right|$$
     
     Edge pixels yield large output values; flat regions yield values near zero. Because the Sobel kernels incorporate smoothing (the central column/row has higher weights), the operator is less sensitive to noise than a simple central difference.
     

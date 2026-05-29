@@ -82,22 +82,23 @@ Landsat 8 and similar sensors deliver each spectral band as a separate GeoTIFF
 |`None` (raw)|Red (Band 4)|Green (Band 3)|Blue (Band 2)|Un‑normalised true colour; direct DN values.|
 |`"rgb"`|Red (normalised)|Green (normalised)|Blue (normalised)|True colour with enhanced contrast, suitable for human viewing.|
 |`"infrared"`|SWIR2 (Band 7)|SWIR1 (Band 6)|NIR (Band 5)|False‑colour infrared: highlights moisture, active vegetation, and burned areas.|
-    The three selected 2D arrays are stacked into a 3‑band cube using NumPy’s `np.stack` along `axis=2` :
+
+The three selected 2D arrays are stacked into a 3‑band cube using NumPy’s `np.stack` along `axis=2`:
     
-    $$output = np.stack([R, G, B], axis = 2)$$
+$$output = np.stack([R, G, B], axis = 2)$$
     
 This operation takes three arrays of shape $(H,W)$ and produces a single array of shape $(H,W,3)$, where the third dimension indexes the red, green, and blue colour channels. This is the standard memory layout expected by imaging libraries and colour‑display functions.
     
-Mathematically, the pixel at location (x,y)(x,y) in the output is the vector :
-    
-    $$\vec{P}(x, y) = 
+Mathematically, the pixel at location $(x, y)$ in the output is represented by the vector:
+$$
+\vec{P}(x, y) =
 \begin{bmatrix}
 R(x, y) \\
 G(x, y) \\
 B(x, y)
-\end{bmatrix}$$​
-	
-	
+\end{bmatrix}
+$$
+
 - **Spectral rationale for the infrared composite :**  
     In the `"infrared"` mode, the assignment SWIR2→R, SWIR1→G, NIR→B is not arbitrary :
     

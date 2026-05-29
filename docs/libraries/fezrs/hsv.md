@@ -26,8 +26,8 @@ All bands are normalised to the range $[0,1]$ beforehand. The conversion impleme
 
 Given an RGB triplet $(R,G,B)$ with values in $[0,1]$, let :
 
-$$V \leftarrow \max(R, G, B)$$
-$$C \leftarrow V - \min(R, G, B)$$
+    $$V \leftarrow \max(R, G, B)$$
+    $$C \leftarrow V - \min(R, G, B)$$
 **Value (V)** is simply the maximum of the three colour channels :
 
 $$V = \max(R, G, B)$$
@@ -36,12 +36,12 @@ It represents the brightness of the colour. In the false‑colour context, $V$ i
 
 **Saturation (S)** is defined as :
 
-$$S = 
-\begin{cases} 
-0, & \text{if } V = 0 \\
-C\\ 
-V, & \text{otherwise} 
-\end{cases}$$
+    $$S = 
+    \begin{cases} 
+    0, & \text{if } V = 0 \\
+    C\\ 
+    V, & \text{otherwise} 
+    \end{cases}$$
 
 Saturation measures the purity of the colour. A low saturation means the three bands have nearly equal values (the pixel appears grey/white), while a high saturation indicates one or two bands dominate (pure colour). For example, a healthy vegetation pixel with a very high NIR value but low Green/Blue values will produce a red‑dominated false‑colour with high saturation.
 
@@ -58,10 +58,10 @@ Saturation measures the purity of the colour. A low saturation means the three b
     More precisely, scikit‑image implements :
     
     $$H = 
-\begin{cases} 
-\frac{60^\circ}{360^\circ} \cdot \left( \frac{G - B}{C} \right) & \text{if } C \neq 0 \\ 
-0 & \text{otherwise}
-\end{cases}$$
+    \begin{cases} 
+    \frac{60^\circ}{360^\circ} \cdot \left( \frac{G - B}{C} \right) & \text{if } C \neq 0 \\ 
+    0 & \text{otherwise}
+    \end{cases}$$
     
     If the numerator is negative, the result is shifted by $360^\circ$ and then divided by $360^\circ$ to obtain the final $[0,1]$ value.
     
@@ -160,7 +160,7 @@ $$S =
 \frac{V - \min(SWIR2, SWIR1, Red)}{V}, & \text{otherwise}
 \end{cases}$$
 
-$H = \text{computed via the same piecewise formula, using SWIR2 as R, SWIR1 as G, Red as B}$
+$$H = \text{computed via the same piecewise formula, using SWIR2 as R, SWIR1 as G, Red as B}$$
 
 This quantitative separation allows automatic thresholding : e.g., burned areas typically exhibit high irvalue (ash is bright in SWIR2), moderate irsaturation, and irhue in a narrow range around 0.0–0.15 (red/orange).
 
