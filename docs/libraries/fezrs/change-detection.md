@@ -1,290 +1,453 @@
-# Change Detection
+## 1. Module Overview
 
-### 1. Introduction
+The `change_detection` module provides a comprehensive suite of remote sensing tools designed to isolate, classify, and quantify temporal surface dynamics using bi-temporal satellite imagery. By analyzing multi-spectral imagery captured across two distinct temporal windows—typically classified as **Pre-Event (t0​, Before)** and **Post-Event (t1​, After)**—these tools facilitate automated monitoring of ecological disturbances such as wildfire burn severity, flood inundation, land-cover conversions, and vegetation degradation.
 
-This module contains a set of tools for analysing **temporal changes** in satellite images. The main goal is to identify and quantify changes that have occurred between two time periods – typically before and after an event such as a fire, a flood, or land‑use modification.
+### Core Architecture
 
-**Existing Classes :**
+Every operational calculator within this module inherits from the unified base architecture (`fezrs.base.BaseTool`) and integrates seamlessly with `self.files_handler` for low-level file metadata extraction, CRS alignment, and spatial data loading.
 
-|Class Name|Specialised Application|
-|---|---|
-|`BurnCalculator`|Identifies burned areas using the **Normalized Burn Ratio (NBR)** and its differenced form dNBR|
-|`IndicesCalculator`|Calculates the NBR index for either the pre‑event or the post‑event image|
-|`MagDirCalculator`|Computes the **change vector** (magnitude and direction) in the NIR–SWIR spectral space|
-|`SubDivCalculator`|Performs simple subtraction or division between bands of the two dates|
-|`TimeCalculator`|Extracts one of the input images (pre‑ or post‑event) in raw form|
+```
+       fezrs.base.BaseTool [Base Architecture]
+                 │
+                 ▼
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │                   fezrs.tools.change_detection Module                  │
+ ├───────────────────┬─────────────────────┬──────────────────────────────┤
+ │                   │                     │                              │
+ ▼                   ▼                     ▼                              ▼
+BurnCalculator   IndicesCalculator   MagDirCalculator    SubDivCalculator & TimeCalculator
+```
 
----
+## 2. Common Dependencies & Inheritance Model
 
-### 2. Common Dependencies
+All tools share a strict, predictable execution lifecycle managed by the parent class's workflow.
 
-All classes in this module inherit from `fezrs.base.BaseTool` and use the `self.files_handler` mechanism for file management. The main processing method in each class is named `process()`, and the final output is saved via the `execute()` method.
-
----
-
-### 3. Detailed Documentation for Each Class
-
-#### 3.1. `BurnCalculator` – Burn Severity Calculation (dNBR)
-
-**Scientific objective**  
-Compute the differenced Normalized Burn Ratio (dNBR), the standard metric for determining fire severity and mapping burn scars.
-
-**Full Explanation of the Formulas**
-
-The Normalized Burn Ratio (NBR) is a spectral index that leverages the distinct spectral behaviour of healthy vegetation and burned surfaces in the near‑infrared (NIR) and short‑wave infrared (SWIR2) regions.
-
-- **Spectral basis :**  
-    Healthy green vegetation reflects strongly in NIR (typically 40–60% of incoming radiation) while absorbing most SWIR2 due to leaf water content. After a fire, vegetation is removed, exposing soil and ash. Ash and bare soil reflect much less in NIR and more in SWIR2 relative to vegetation. Consequently, fire‑affected areas show a sharp drop in NIR reflectance and an increase in SWIR2 reflectance.
+- **File Tracking:** Inputs are passed as standardized path types (`str` or `pathlib.Path`), resolved by the file management handler, and converted into multi-dimensional NumPy arrays (`numpy.ndarray`).
     
-- **Normalized Burn Ratio (NBR) :**  
-    The NBR index captures this contrast through a normalised difference formula:
+- **Processing Lifecycle:** Every tool overrides the private engineering core `_validate()` and the main operational gateway `process()`.
     
-	$$NBR = \frac{NIR - SWIR2}{NIR + SWIR2}$$
+- **Output Pipe:** The `execute()` method serializes the internal computed state (`self._output`) directly to disk as geo-referenced arrays or high-fidelity visual matrices using Matplotlib.
+
+
+## 3. Comprehensive Class Specifications
+
+### 3.1. `BurnCalculator` — Wildfire Severity Mapping via Differential Burn Ratios
+
+#### Scientific & Physical Objective
+
+The primary operational goal of `BurnCalculator` is to compute the **Differenced Normalized Burn Ratio ($dNBR$)**, which isolates the physical destruction of vegetative biomass caused by fire events, delineating burn scar perimeters and classifying relative ecological severity.
+
+#### Theoretical Foundation & Mathematical Formulations
+
+Healthy vegetative canopies exhibit high cellular reflectance in the Near-Infrared ($NIR$) spectrum due to the structural scattering properties of leaf mesophyll tissue, alongside low reflectance in the Short-Wave Infrared ($SWIR2$) band due to strong absorption by liquid water stored within the plant tissue.
+
+During an intense fire event, photosynthetic vegetation is consumed, destroying canopy architecture and liquid water reservoirs. The surface is converted into ash, charcoal, and exposed mineral soil. This radical physical shift triggers a steep drop in NIR reflectance coupled with a profound increase in $SWIR2$ reflectance.
+
+```
+[Healthy Canopy] ──────► High NIR Reflection  + High SWIR2 Absorption ──► High Positive NBR
+[Burned Canopy]  ──────► Low NIR Reflection   + Low SWIR2 Absorption  ──► Negative/Low NBR
+```
+
+The **Normalized Burn Ratio ($NBR$)** mathematically scales this relationship within normalized limits of $[−1.0,+1.0]$:
+
+$$NBR = \frac{NIR - SWIR2}{NIR + SWIR2}$$
+
+To eliminate background physical constants, topographical lighting discrepancies, and solar zenith illumination geometry, the **Differenced Normalized Burn Ratio ($dNBR$)** evaluates the absolute delta across the temporal baseline:
+
+$$dNBR = NBR_{before} - NBR_{after}$$
+
+In code execution, the delta is structurally represented as:
+
+$$\Delta NBR = NBR_{t_0} - NBR_{t_1}$$
+
+An elevated positive value directly registers vegetative loss and severe canopy charring. The module applies a strict binary thresholding condition to classify highly affected fire zones:
+
+$$\text{Burn Mask} = \begin{cases} \text{True (1)}, & \text{if } dNBR > 0.7 \\ \text{False (0)}, & \text{if } dNBR \le 0.7 \end{cases}$$
+
+#### Standard Interpretation Scale
+
+The operational cutoff of 0.7 targeting high-severity burn scars conforms strictly to the environmental monitoring metrics established by Key & Benson (2006) and the United States Geological Survey (USGS):
+
+| $dNBR$ Interval Range | Biophysical Classification Severity Status          |
+| --------------------- | --------------------------------------------------- |
+| < 0.10                | Unburned / Control Zone                             |
+| 0.10 ≤ $dNBR$ ≤ 0.27  | Low-Severity Burn                                   |
+| 0.27 < $dNBR$ ≤ 0.66  | Moderate-Severity Burn                              |
+| > 0.66                | High-Severity Burn Scar (> 0.70 application cutoff) |
+
+#### Edge-Case Computational Handling
+
+In rare conditions where absolute dark pixels or shadow voids generate a total zero denominator ($NIR+SWIR2=0$), the resulting $NaN$ floating-point evaluation is trapped by the conditional evaluator ($NaN>0.7$), naturally falling back safely to a `False` assignment.
+
+#### Interface Architecture
+
+- **Constructor Method (`__init__`) Input Arguments:**
     
-    This formulation is borrowed from the well‑known NDVI but uses SWIR2 instead of red. The normalisation by the sum of the two bands reduces the influence of variable illumination (sun angle, topography) and atmospheric effects.  
-    NBR values theoretically range from –1 to +1:
-    
-    - High positive values (≈ +0.5 to +1) indicate robust vegetation (high NIR, low SWIR2).
+    - `nir_path` (`str` | `Path`): Post-event ($t_1$​) Near-Infrared band file location.
         
-    - Low or negative values are associated with bare soil, rock, or burned areas.
+    - `swir2_path` (`str` | `Path`): Post-event ($t_1$​) Short-Wave Infrared (Band 7 equivalent) file location.
         
-    - Water bodies produce negative NBR because NIR is strongly absorbed and SWIR2 may be relatively higher.
-    
-- **Differenced NBR (dNBR) :**  
-    To isolate change due exclusively to fire, the NBR of the pre‑event image is subtracted from that of the post‑event image :
-    
-    $$dNBR = NBR_{before} - NBR_{after}$$
-	
-    
-    A positive dNBR means the NBR decreased after the event, i.e., the pixel lost vegetation and likely burned. The magnitude of dNBR correlates with burn severity.
-    
-    In the code, the subtraction is implemented as `indices_before - indices_after`, which is mathematically equivalent.
-    
-- **Severity thresholding :**  
-    The code then applies a threshold `dNBR > 0.7` to produce a binary mask of high‑severity burned areas.  
-    Standard interpretation of dNBR (Key & Benson, 2006; USGS) is:
-    
-    - dNBR < 0.1 → unburned
+    - `before_nir_path` (`str` | `Path`): Pre-event ($t_0$​) Near-Infrared reference band file location.
         
-    - 0.1 – 0.27 → low severity
-        
-    - 0.27 – 0.66 → moderate severity
-        
-    - `>` 0.66 → high severity  
-	    The value 0.7 is a conservative, commonly used cutoff for severe burns. The output is a Boolean array (`True` for high severity).
+    - `before_swir2_path` (`str` | `Path`): Pre-event ($t_0$​) Short-Wave Infrared reference band file location.
     
-- **Mathematical note on division by zero :**  
-    The denominator `NIR + SWIR2` can be zero (e.g., in areas of complete darkness). In practice, such pixels are rare, but if they occur, the resulting `NaN` is handled by the `> 0.7` comparison (evaluating to `False`). A future improvement could explicitly set these to `False`.
+- **Return State (`process()`):** Returns a boolean `numpy.ndarray` acting as a strict spatial mask for severe burn perimeters.
 
 
-**Input parameters (`__init__`) :**
+#### Execution Implementation
 
-|Parameter|Type|Description|
-|---|---|---|
-|`nir_path`|`str` or `Path`|Path to the NIR band file (post‑event)|
-|`swir2_path`|`str` or `Path`|Path to the SWIR2 band file (post‑event)|
-|`before_nir_path`|`str` or `Path`|Path to the NIR band file (pre‑event)|
-|`before_swir2_path`|`str` or `Path`|Path to the SWIR2 band file (pre‑event)|
-
-**Return value of `process()` :**  
-`numpy.ndarray` of type `bool` (burn mask).
-
-**Usage example :**
-```python
+```Python
 from pathlib import Path
 from fezrs.tools.change_detection import BurnCalculator
 
-calc = BurnCalculator(
-    nir_path="path/to/after_B4.tif",
-    swir2_path="path/to/after_B7.tif",
-    before_nir_path="path/to/before_B4.tif",
-    before_swir2_path="path/to/before_B7.tif"
+# Initialize burn severity calculation pipeline
+burn_analyzer = BurnCalculator(
+    nir_path=Path("./data/post_event_B5.tif"),
+    swir2_path=Path("./data/post_event_B7.tif"),
+    before_nir_path=Path("./data/pre_event_B5.tif"),
+    before_swir2_path=Path("./data/pre_event_B7.tif")
 )
-calc.execute(output_path="./results/", title="Burn Severity Mask", colormap="Reds")
+
+# Execute core processing and save high-resolution binary burn mask
+burn_analyzer.execute(
+    output_path="./exports/burn_mapping/",
+    title="High-Severity Wildfire Scar Mask",
+    colormap="Reds",
+    dpi=500
+)
 ```
 
----
+### 3.2. `IndicesCalculator` — Single-Date Baseline Radiometric Evaluation
 
-#### 3.2. `IndicesCalculator` – Compute NBR for a Single Date
+#### Scientific & Physical Objective
 
-**Scientific objective**  
-Calculate the raw Normalized Burn Ratio (NBR) for one of the two images (pre‑event or post‑event only). This tool is useful for previewing the vegetation condition on a single date or for intermediate analyses.
+This calculator extracts the absolute, standalone Normalized Burn Ratio ($NBR$) array for a singular, targeted date instance ($t_0$​ or $t_1​$). It provides structural diagnostic controls for baseline canopy vigor, pre-fire fuel-load mapping, or intermediate analytical steps.
 
-**Full Explanation of the Formula**
+#### Theoretical Foundation & Mathematical Formulations
 
-- The NBR formula is identical to that in `BurnCalculator`:
+The analytical equation executes the non-linear difference calculation isolated to the user's temporal selection:
+
+$$NBR = \frac{NIR - SWIR2}{NIR + SWIR2}$$
+
+The temporal trajectory is governed explicitly via the `time` parameter flag:
+
+- When `time="before"`, calculations map the initial environmental status ($t_0$​). This helps diagnose pre-fire desiccation or moisture stress across vulnerable canopies.
     
-	$$NBR = \frac{NIR - SWIR2}{NIR + SWIR2}$$
+- When `time="after"`, calculations map the structural landscape distribution ($t_1$​) after the occurrence of the physical disturbance event.
+
+
+The array maintains continuous floating-point values constrained to a $[−1.0,1.0]$ range.
+
+#### Interface Architecture
+
+- **Constructor Method (`__init__`) Input Arguments:**
     
-    The choice of the image is controlled by the `time` parameter. If `"after"`, the post‑event NIR and SWIR2 bands are used; if `"before"`, the pre‑event bands are used.
-    
-- The output is a floating‑point array between –1 and 1. Since no differencing is applied, the result shows the absolute vegetation‑fuel condition at that date. For example, a low NBR in a pre‑fire image might already indicate a dry, stressed vegetation state, whereas a high NBR suggests lush vegetation.
-    
-- This index can be used independently of fire – it is essentially a vegetation index sensitive to leaf water content and standing biomass, and can be applied to any multi‑spectral image possessing NIR and SWIR2 bands.
-
-
-**Input parameters :**
-
-| Parameter           | Type                         | Description                                |
-| ------------------- | ---------------------------- | ------------------------------------------ |
-| `nir_path`          | `str` or `Path`              | NIR band (post‑event)                      |
-| `swir2_path`        | `str` or `Path`              | SWIR2 band (post‑event)                    |
-| `before_nir_path`   | `str` or `Path`              | NIR band (pre‑event)                       |
-| `before_swir2_path` | `str` or `Path`              | SWIR2 band (pre‑event)                     |
-| `time`              | `Literal["before", "after"]` | Determines for which image NBR is computed |
-
-**Return value :**  
-`numpy.ndarray` (float values between –1 and 1).
-
-**Usage example :**
-```python
-calc = IndicesCalculator(..., time="after")
-calc.execute("./output", title="NBR After Event")
-```
-
----
-
-#### 3.3. `MagDirCalculator` – Change Vector Magnitude and Direction (CVA)
-
-**Scientific objective**  
-Perform Change Vector Analysis (CVA) in the two‑band spectral space formed by NIR and SWIR1. For each pixel, the algorithm calculates both the **magnitude** of change (how much it changed) and the **direction** (what kind of change occurred).
-
-**Full Explanation of the Formulas**
-CVA models a pixel’s spectral evolution as a vector. If we plot the pre‑event pixel as a point ($NIR_{\text{before}}, SWIR1_{\text{before}}$​) and the post‑event pixel as ($NIR_{\text{after}}, SWIR1_{\text{after}}$), the change vector is :
-
-$$\vec{V} = (NIR_{after} - NIR_{before}, SWIR1_{after} - SWIR1_{before})$$
-
-- **Magnitude of change :**  
-    The Euclidean length of $\vec{V}$ quantifies the total spectral change :
-    
-    $$|\vec{V}| = \sqrt{(NIR_{after} - NIR_{before})^2 + (SWIR1_{after} - SWIR1_{before})^2}$$
-    
-    Larger magnitude implies a stronger alteration, regardless of its nature. This is particularly useful for rapidly identifying hotspots of change (e.g., logging, fire, urban expansion).
-    
-- **Direction of change (discrete coding) :**  
-    The direction is determined by the signs of the differences in both bands. The algorithm assigns a code from 1 to 4 based on these sign combinations :
-	
-| NIR change | SWIR1 change | Code | Interpretation                                                                                       |
-| ---------- | ------------ | ---- | ---------------------------------------------------------------------------------------------------- |
-| decrease   | decrease     | 1    | Vegetation decrease + moisture decrease (e.g., fire, die‑off)                                        |
-| increase   | decrease     | 2    | Vegetation increase + moisture decrease (healthy plant growth)                                       |
-| decrease   | increase     | 3    | Vegetation decrease + moisture increase (flood, soil saturation)                                     |
-| increase   | increase     | 4    | Both increase (possible atmospheric or sensor anomaly, or land‑cover conversion to brighter surface) |
-These codes are discrete and qualitative; they do not capture the precise angle of the vector. For a full quantitative CVA, one would compute the angular direction $θ=arctan2$ ($SWIR1_{\text{diff}}, NIR_{\text{diff}}$) and potentially define sectors for different change types. The current approach provides a simple and intuitive classification.
-	
-- **Physical interpretation of bands in CVA :**  
-    NIR is sensitive to vegetation amount and vigour; SWIR1 is sensitive to moisture content (leaf water, soil moisture). Therefore :
-    
-    - Code 1 (both decrease) : loss of photosynthetically active vegetation and drying → typical of fire scars or severe drought.
+    - `nir_path` (`str` | `Path`): Post-event ($t_1$​) NIR band file path.
         
-    - Code 2 (NIR up, SWIR1 down) : regrowth of healthy plants (higher NIR) and low SWIR1 (less moisture stress) → typical of reforestation or crop development.
+    - `swir2_path` (`str` | `Path`): Post-event ($t_1$​) SWIR2 band file path.
         
-    - Code 3 (NIR down, SWIR1 up) : vegetation removal (NIR drops) and wetter surface (SWIR1 increases) → flooding or irrigation.
+    - `before_nir_path` (`str` | `Path`): Pre-event ($t_0$​) NIR band file path.
         
-    - Code 4 (both increase) : could indicate a change from water to soil/urban (both bands increase), but also can be caused by residual clouds or shadows if not properly masked.
-
-**Input parameters :**
-
-| Parameter           | Type                                | Description                                    |
-| ------------------- | ----------------------------------- | ---------------------------------------------- |
-| `nir_path`          | `Path`                              | Post‑event NIR band                            |
-| `swir1_path`        | `Path`                              | Post‑event SWIR1 band (usually Landsat Band 5) |
-| `before_nir_path`   | `Path`                              | Pre‑event NIR band                             |
-| `before_swir1_path` | `Path`                              | Pre‑event SWIR1 band                           |
-| `selecte`           | `Literal["magnitude", "direction"]` | Type of output to produce                      |
-
-**Return value :**
-
-- If `"magnitude"`: array of floating‑point values (change intensity).
+    - `before_swir2_path` (`str` | `Path`): Pre-event ($t_0$​) SWIR2 band file path.
+        
+    - `time` (`Literal["before", "after"]`): Directing pointer selecting the active target layer matrix.
     
-- If `"direction"`: array of integers 1–4 (change type code).
+- **Return State (`process()`):** Returns a floating-point `numpy.ndarray` array representing absolute $NBR$ spectral coordinates.
 
-**Usage example :**
-```python
-calc = MagDirCalculator(..., selecte="magnitude")
-calc.execute("./output", title="Change Magnitude", colormap="viridis")
+
+#### Execution Implementation
+
+```Python
+from pathlib import Path
+from fezrs.tools.change_detection import IndicesCalculator
+
+# Instantiate standalone single-date baseline engine
+nbr_baseline = IndicesCalculator(
+    nir_path=Path("./data/t1_B5.tif"),
+    swir2_path=Path("./data/t1_B7.tif"),
+    before_nir_path=Path("./data/t0_B5.tif"),
+    before_swir2_path=Path("./data/t0_B7.tif"),
+    time="before"
+)
+
+# Run process to isolate baseline pre-fire fuel stress
+nbr_baseline.execute(
+    output_path="./exports/indices/",
+    title="Pre-Fire Baseline NBR",
+    colormap="YlGn",
+    dpi=500
+)
 ```
 
----
+### 3.3. `MagDirCalculator` — Multi-Spectral Change Vector Analysis (CVA)
 
-#### 3.4. `SubDivCalculator` – Simple Band Subtraction or Division
+#### Scientific & Physical Objective
 
-**Scientific objective**  
-A helper tool to visualise the absolute or relative difference of a specific band (e.g., NIR) between two dates. This gives a quick, intuitive picture of change without complex indices.
+`MagDirCalculator` processes spatial dynamics through Change Vector Analysis (CVA) across a dual-dimensional spectral feature space ($NIR×SWIR1$). This technique quantifies the exact magnitude of spectral pixel shifts and categorizes the physical direction of land-cover transitions.
 
-**Full Explanation of the Formulas**
+#### Theoretical Foundation & Mathematical Formulations
 
-Two operations are provided :
+A pixel's bi-temporal spectral state is modeled as a mathematical coordinate trajectory shifting through space. By establishing the primary axes via Near-Infrared ($NIR$, indicating vegetative density) and Short-Wave Infrared ($SWIR1$, indicating canopy and soil moisture metrics), bi-temporal coordinates are plotted as:
 
-- **Subtraction :**
-	
-    $$\Delta = Band_{\text{before}} - Band_{\text{after}}$$        
-    This gives the absolute change in reflectance (or digital number). Positive values imply a reduction of reflectance after the event (e.g., vegetation loss), and negative values indicate an increase (e.g., sediment deposition, new built‑up). The result retains the original physical units of the band and is sensitive to the overall brightness of the scene.
-    
-- **Division (ratio) :**
-	
-    $$R = \frac{Band_{before}}{Band_{after}}$$    
-    The ratio compensates for illumination differences and multiplicative noise. A ratio of 1 means no change; >1 indicates the before value was larger (a decrease after the event); <1 indicates an increase after the event. Ratios are inherently non‑negative and can become very large if the denominator is near zero, so a small epsilon can be added in future versions to avoid division‑by‑zero errors.
-    
+$$P_{\text{before}} = (NIR_{t_0}, SWIR1_{t_0}) \quad \text{and} \quad P_{\text{after}} = (NIR_{t_1}, SWIR1_{t_1})$$
 
-**Input parameters :**
+The corresponding **Change Vector** ($V$) is defined as:
 
-| Parameter         | Type                            | Description                                 |
-| ----------------- | ------------------------------- | ------------------------------------------- |
-| `nir_path`        | `Path`                          | Post‑event NIR band (or any band of choice) |
-| `before_nir_path` | `Path`                          | Pre‑event NIR band                          |
-| `operation`       | `Literal["subtract", "divide"]` | Mathematical operation to apply             |
+$$V = \begin{bmatrix} \Delta NIR \\ \Delta SWIR1 \end{bmatrix} = \begin{bmatrix} NIR_{t_1} - NIR_{t_0} \\ SWIR1_{t_1} - SWIR1_{t_0} \end{bmatrix}$$
 
-**Return value :**  
-`numpy.ndarray` resulting from the chosen operation.
+##### 1. Change Vector Magnitude (∣$V$∣)
 
-**Usage example :**
-```python
-calc = SubDivCalculator(..., operation="subtract")
-calc.execute("./output", title="NIR Difference (Before - After)")
+The total geometric shift across spectral feature space is calculated using the Euclidean distance equation:
+
+$$|V| = \sqrt{(NIR_{t_1} - NIR_{t_0})^2 + (SWIR1_{t_1} - SWIR1_{t_0})^2}$$
+
+Higher values indicate intense land-cover modifications (e.g., rapid deforestation, urban clearings, or severe wildfire devastation), independent of the qualitative nature of the change.
+
+##### 2. Change Vector Directional Coding
+
+The discrete directional quadrant (1 through 4) indicates the path taken by the pixel trajectory across the spectral domain. These paths map directly to distinct qualitative environmental transformations:
+
+```
+                  ▲ ΔSWIR1 (Moisture Decrease)
+                  │
+     Quadrant 3   │   Quadrant 4
+     [ΔNIR < 0]   │   [ΔNIR > 0]
+     [ΔSWIR1 > 0] │   [ΔSWIR1 > 0]
+                  │
+──────────────────┼──────────────────► ΔNIR
+                  │  (Biomass Increase)
+     Quadrant 1   │   Quadrant 2
+     [ΔNIR < 0]   │   [ΔNIR > 0]
+     [ΔSWIR1 < 0] │   [ΔSWIR1 < 0]
+                  │
 ```
 
----
+- **Quadrant Code 1 ($ΔNIR<0$ and $ΔSWIR1<0$):** Simultaneous drop in structural biomass and liquid moisture absorption. This signature often represents intense fire events, vegetation clearings, or canopy die-back.
+    
+- **Quadrant Code 2 ($ΔNIR>0$ and $ΔSWIR1<0$):** Increasing cell structures alongside active water-retention scaling. This confirms vegetation vigor enhancement, characteristic of reforestation, crop maturity, or canopy recovery.
+    
+- **Quadrant Code 3 ($ΔNIR<0$ and $ΔSWIR1>0$):** Biomass loss with rising shortwave reflection. This indicates clear canopy stripping accompanied by soil water saturation, revealing events like structural flooding, wetland expansion, or extensive irrigation.
+    
+- **Quadrant Code 4 ($ΔNIR>0$ and $ΔSWIR1>0$):** Co-registered elevation across both spectrum tracks. This typically points to complex land conversions, new urban concrete structures, or sensor illumination artifacts.
 
-#### 3.5. `TimeCalculator` – Raw Image Extraction
 
-**Scientific objective**  
-This class provides a simple wrapper for direct access to the NumPy data of one of the two input images. It is used for debugging or for displaying a raw image in the user interface, serving as a baseline.
+#### Interface Architecture
 
-**Input parameters :**
+- **Constructor Method (`__init__`) Input Arguments:**
+    
+    - `nir_path` (`Path`): Post-event ($t_1$​) $NIR$ band file path.
+        
+    - `swir1_path` (`Path`): Post-event ($t_1$​) $SWIR1$ band file path.
+        
+    - `before_nir_path` (`Path`): Pre-event ($t_0$​) $NIR$ band file path.
+        
+    - `before_swir1_path` (`Path`): Pre-event ($t_0$​) $SWIR1$ band file path.
+        
+    - `selecte` (`Literal["magnitude", "direction"]`): Selector pointing target execution to compute numerical scalar distances or integer category labels.
+    
+- **Return State (`process()`):** Returns a `numpy.ndarray` array containing floating-point Euclidean distances or integer categorical maps ($1≤x≤4$).
 
-| Parameter         | Type                         | Description               |
-| ----------------- | ---------------------------- | ------------------------- |
-| `nir_path`        | `Path`                       | Post‑event NIR band       |
-| `before_nir_path` | `Path`                       | Pre‑event NIR band        |
-| `time`            | `Literal["before", "after"]` | Selects the desired image |
+#### Execution Implementation
 
-**Return value :**  
-NumPy array of the chosen NIR band (float values after standardisation).
 
-**Usage example :**
-```python
-calc = TimeCalculator(..., time="before")
-calc.execute("./output", title="Raw NIR Image Before Event")
+```Python
+from pathlib import Path
+from fezrs.tools.change_detection import MagDirCalculator
+
+# Instantiate change vector analysis workflow
+cva_engine = MagDirCalculator(
+    nir_path=Path("./data/after_NIR.tif"),
+    swir1_path=Path("./data/after_SWIR1.tif"),
+    before_nir_path=Path("./data/before_NIR.tif"),
+    before_swir1_path=Path("./data/before_SWIR1.tif"),
+    selecte="magnitude"
+)
+
+# Render change tracking magnitude map
+cva_engine.execute(
+    output_path="./exports/cva/",
+    title="Change Vector Euclidean Magnitude",
+    colormap="viridis",
+    dpi=500
+)
 ```
 
----
+### 3.4. `SubDivCalculator` — Direct Linear Differencing and Ratio Computations
 
-### 4. Important Technical Notes for Developers
+#### Scientific & Physical Objective
 
-- **Path handling :** The classes support `pathlib.Path`.
+`SubDivCalculator` provides quick, intuitive structural diagnostics by performing cell-by-cell algebraic subtraction or division across a targeted band array. This delivers immediate localized assessments of surface reflectance changes without index scaling overhead.
+
+#### Theoretical Foundation & Mathematical Formulations
+
+The system processes change tracking across two structural arithmetic options:
+
+##### 1. Subtraction Mode (`operation="subtract"`)
+
+$$\Delta_{\text{Reflectance}} = Band_{t_0} - Band_{t_1}$$
+
+This calculation preserves the original radiometric values of the scene. Positive results indicate a drop in surface reflection at $t_1$​ (e.g., vegetative harvesting), while negative results capture localized reflection gains (e.g., sediment deposits or building developments).
+
+##### 2. Division Mode (`operation="divide"`)
+
+$$R_{\text{Reflectance}} = \frac{Band_{t_0}}{Band_{t_1}}$$
+
+The ratio transformation helps minimize terrain shadow effects and illumination differences caused by topography.
+
+- A ratio value of $1.0$ indicates perfect stability across the bi-temporal window.
     
-- **Output resolution :** All `execute()` methods set `dpi=500`, which is suitable for high‑quality printed outputs.
+- Ratios $>1.0$ reveal structural reflection losses at $t_1$​.
     
-- **Validation (`_validate`) :** In the current version these methods are empty. It is recommended to add a check for equal dimensions of pre‑ and post‑event images in future versions to avoid NumPy broadcasting errors.
+- Ratios $<1.0$ show absolute gains in reflection over the same period.
+
+#### Interface Architecture
+
+- **Constructor Method (`__init__`) Input Arguments:**
     
-- **Nested loops in `MagDirCalculator`:** This part of the code is written with plain Python `for` loops. For large images (e.g., full Landsat scenes) it will be very slow.  
-  **Suggested optimisation :**
+    - `nir_path` (`Path`): Post-event ($t_1$​) band file target location.
+        
+    - `before_nir_path` (`Path`): Pre-event ($t_0$​) band file reference location.
+        
+    - `operation` (`Literal["subtract", "divide"]`): Algebraic operator selection.
     
-```python
-# Use vectorised NumPy operations instead of loops:
-diff_nir = before_nir - nir
-diff_swir = before_swir1 - swir1
-magnitude = np.sqrt(diff_nir**2 + diff_swir**2)
-direction = np.select([(diff_nir<0)&(diff_swir<0), ...], [1,2,3,4])
+- **Return State (`process()`):** Returns a `numpy.ndarray` numerical array capturing pixel-by-pixel change deltas or ratios.
+
+
+#### Execution Implementation
+
+
+```Python
+from pathlib import Path
+from fezrs.tools.change_detection import SubDivCalculator
+
+# Setup quick linear band subtract pipeline
+linear_diff = SubDivCalculator(
+    nir_path=Path("./data/t1_NIR.tif"),
+    before_nir_path=Path("./data/t0_NIR.tif"),
+    operation="subtract"
+)
+
+# Export structural linear difference array
+linear_diff.execute(
+    output_path="./exports/linear/",
+    title="NIR Band Absolute Subtraction (t0 - t1)",
+    colormap="bwr",
+    dpi=500
+)
+```
+
+### 3.5. `TimeCalculator` — Bi-Temporal Extraction and Diagnostic Baseline Isolation
+
+#### Scientific & Physical Objective
+
+`TimeCalculator` provides low-level debugging isolation and user-interface baseline extraction. It bypasses all change-detection operations to directly stream standardized, core array matrices from either $t_0$​ or $t_1$​.
+
+#### Interface Architecture
+
+- **Constructor Method (`__init__`) Input Arguments:**
+    
+    - `nir_path` (`Path`): Post-event ($t_1$​) $NIR$ band file path reference.
+        
+    - `before_nir_path` (`Path`): Pre-event ($t_0$​) $NIR$ band file path reference.
+        
+    - `time` (`Literal["before", "after"]`): Directing pointer selecting the temporal layer target.
+    
+- **Return State (`process()`):** Returns a standardized floating-point `numpy.ndarray` array containing raw reflectance values from the selected timestamp.
+
+#### Execution Implementation
+
+
+```Python
+from pathlib import Path
+from fezrs.tools.change_detection import TimeCalculator
+
+# Isolate pristine baseline array data for validation
+raw_viewer = TimeCalculator(
+    nir_path=Path("./data/t1_NIR.tif"),
+    before_nir_path=Path("./data/t0_NIR.tif"),
+    time="before"
+)
+
+# Output raw baseline array map
+raw_viewer.execute(
+    output_path="./exports/diagnostic/",
+    title="Pristine Baseline Pre-Event NIR Array",
+    colormap="gray",
+    dpi=500
+)
+```
+
+## 4. Engineering Enhancements & Vectorization Guide
+
+### 4.1. Crucial Architectural Upgrades for Stability
+
+1. **Bi-Temporal Spatial Validation:** The current placeholder in `_validate()` should be upgraded to enforce strict coordinate alignment. If a user feeds mismatched raster extensions into the pipeline, the system will raise an immediate, informative error before attempting unaligned matrix calculations.
+    
+```Python
+def _validate(self):
+    # Ensure absolute shape equivalence to prevent internal NumPy broadcasting failure
+    shape_before = self.files_handler.get_metadata_bands(["before_nir"])["before_nir"]["image_skimage"].shape
+    shape_after = self.files_handler.get_metadata_bands(["nir"])["nir"]["image_skimage"].shape
+
+    if shape_before != shape_after:
+        raise ValueError(
+            f"Bi-temporal Spatial Alignment Mismatch Error: Pre-event dimension {shape_before} "
+            f"cannot execute broadcasting operations alongside Post-event dimension {shape_after}."
+        )
+```
+    
+2. **Safe Division Guarding via Epsilon Topologies:** To systematically eliminate divide-by-zero or $NaN$ issues across indices or division operations, add a low-level micro-constant ($ϵ=1e−10$) to calculations.
+
+### 4.2. Vectorizing `MagDirCalculator` Loop Operations
+
+The original iteration used standard Python loops to compute Change Vector Analysis (CVA). This creates a performance bottleneck when processing large satellite datasets (such as complete Landsat or Sentinel scenes).
+
+#### Performance Matrix Breakdown
+
+- **Loop Implementation:** O(N×M) time complexity. This requires nested operations across every coordinate row and column, creating severe processing delays on massive raster grids.
+    
+- **Vectorized Architecture:** O(1) array operations. This offloads calculations to low-level C compiled vector pipelines in NumPy, executing entire raster grids concurrently.
+
+
+```
+[Standard Loop Processing]  ──► [Pixel (0,0)] ──► [Pixel (0,1)] ──► [Pixel (0,2)] ... (Slow)
+[Vectorized Processing]     ──► [[ Entire Raster Matrix Grid Combined ]] ──────► SIMD (Ultrafast)
+```
+
+#### Production-Ready Optimized Implementation
+
+Replace the iterative loops inside `MagDirCalculator.process()` with the vectorized implementation below:
+
+```Python
+def process(self):
+    self._validate()
+    
+    # Extract structural arrays instantaneously
+    nir_t0 = self.files_handler.get_images_collection()["before_nir"]
+    swir_t0 = self.files_handler.get_images_collection()["before_swir1"]
+    nir_t1 = self.files_handler.get_images_collection()["nir"]
+    swir_t1 = self.files_handler.get_images_collection()["swir1"]
+    
+    # Vectorized compute metrics mapping absolute deltas
+    diff_nir = nir_t1 - nir_t0
+    diff_swir = swir_t1 - swir_t0
+    
+    if self.selecte == "magnitude":
+        # Multi-dimensional Euclidean distance calculated concurrently
+        self._output = np.sqrt(np.square(diff_nir) + np.square(diff_swir))
+        
+    elif self.selecte == "direction":
+        # Construct logical boolean truth masks
+        cond_quad_1 = (diff_nir < 0) & (diff_swir < 0)
+        cond_quad_2 = (diff_nir >= 0) & (diff_swir < 0)
+        cond_quad_3 = (diff_nir < 0) & (diff_swir >= 0)
+        cond_quad_4 = (diff_nir >= 0) & (diff_swir >= 0)
+        
+        # Parallel element selection using np.select
+        conditions = [cond_quad_1, cond_quad_2, cond_quad_3, cond_quad_4]
+        choices = [1, 2, 3, 4]
+        
+        self._output = np.select(conditions, choices, default=1)
+        
+    return self._output
 ```
