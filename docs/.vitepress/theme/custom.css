@@ -1,0 +1,51 @@
+:root {
+  --vp-c-brand-1: #343a40;
+  --vp-c-brand-2: #212529;
+  --vp-c-brand-3: #6c757d;
+
+  --vp-c-bg: #f8f9fa;
+  --vp-c-bg-soft: #e9ecef;
+
+  --vp-c-text-1: #212529;
+  --vp-c-text-2: #343a40;
+  --vp-c-text-3: #6c757d;
+
+  --vp-c-border: #adb5bd;
+
+  --vp-home-hero-name-color: #212529;
+
+  --vp-button-brand-bg: #343a40;
+  --vp-button-brand-hover-bg: #212529;
+
+  --vp-button-brand-text: #f8f9fa;
+}
+
+/* Dark mode */
+.dark {
+  --vp-c-bg: #212529;
+  --vp-c-bg-soft: #343a40;
+
+  --vp-c-text-1: #f8f9fa;
+  --vp-c-text-2: #e9ecef;
+  --vp-c-text-3: #adb5bd;
+
+  --vp-c-border: #6c757d;
+
+  --vp-c-brand-1: #adb5bd;
+  --vp-c-brand-2: #e9ecef;
+  --vp-c-brand-3: #6c757d;
+}
+
+.VPNavBarTitle .logo {
+  height: 32px !important;
+  width: auto !important;
+}
+
+.VPNavBarTitle {
+  gap: 10px;
+}
+
+.VPNavBarTitle .title {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
