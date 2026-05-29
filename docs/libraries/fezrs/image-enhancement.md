@@ -1,5 +1,6 @@
+# Image Enhancement
 
-### 1. Module Introduction
+### 1. Introduction
 
 This module provides a set of algorithms for improving the **visual and radiometric quality** of satellite images. The purpose of these tools is to increase sharpness, correct contrast, improve brightness, and prepare images for visual analysis or as input to machine learning models.
 

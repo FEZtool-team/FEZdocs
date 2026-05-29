@@ -21,7 +21,9 @@ export default defineConfig({
       light: "/FEZtool-black-logo.png",
       dark: "/FEZtool-white-logo.png",
     },
+
     siteTitle: "",
+
     nav: [
       { text: "Home", link: "/" },
 
@@ -33,29 +35,63 @@ export default defineConfig({
             items: [
               { text: "Overview", link: "/libraries/fezrs/" },
               {
-                text: "Change Detection",
+                text: "Installation",
+                link: "/libraries/fezrs/installation",
+              },
+              {
+                text: "Modules",
                 link: "/libraries/fezrs/change-detection",
+                items: [
+                  {
+                    text: "Change Detection",
+                    link: "/libraries/fezrs/change-detection",
+                  },
+                  {
+                    text: "Clustering",
+                    link: "/libraries/fezrs/clustering",
+                  },
+                  {
+                    text: "Filters",
+                    link: "/libraries/fezrs/filters",
+                  },
+                  {
+                    text: "GLCM",
+                    link: "/libraries/fezrs/glcm",
+                  },
+                  {
+                    text: "HSV",
+                    link: "/libraries/fezrs/hsv",
+                  },
+                  {
+                    text: "Image Enhancement",
+                    link: "/libraries/fezrs/image-enhancement",
+                  },
+                  {
+                    text: "Import Tools",
+                    link: "/libraries/fezrs/import-tools",
+                  },
+                  {
+                    text: "Mosaic",
+                    link: "/libraries/fezrs/mosaic",
+                  },
+                  {
+                    text: "PCA",
+                    link: "/libraries/fezrs/pca",
+                  },
+                  {
+                    text: "Spectral Indices",
+                    link: "/libraries/fezrs/spectral-indices",
+                  },
+                  {
+                    text: "Spectral Profile",
+                    link: "/libraries/fezrs/spectral-profile",
+                  },
+                  {
+                    text: "SVM",
+                    link: "/libraries/fezrs/svm",
+                  },
+                ],
               },
-              { text: "Clustering", link: "/libraries/fezrs/clustering" },
-              { text: "Filters", link: "/libraries/fezrs/filters" },
-              { text: "GLCM", link: "/libraries/fezrs/glcm" },
-              { text: "HSV", link: "/libraries/fezrs/hsv" },
-              {
-                text: "Image Enhancement",
-                link: "/libraries/fezrs/image-enhancement",
-              },
-              { text: "Import Tools", link: "/libraries/fezrs/import-tools" },
-              { text: "Mosaic", link: "/libraries/fezrs/mosaic" },
-              { text: "PCA", link: "/libraries/fezrs/pca" },
-              {
-                text: "Spectral Indices",
-                link: "/libraries/fezrs/spectral-indices",
-              },
-              {
-                text: "Spectral Profile",
-                link: "/libraries/fezrs/spectral-profile",
-              },
-              { text: "SVM", link: "/libraries/fezrs/svm" },
             ],
           },
         ],
@@ -70,22 +106,56 @@ export default defineConfig({
         {
           text: "FEZrs",
           items: [
-            { text: "Overview", link: "/libraries/fezrs/" },
+            {
+              text: "Overview",
+              link: "/libraries/fezrs/",
+            },
+            {
+              text: "Installation",
+              link: "/libraries/fezrs/installation",
+            },
+          ],
+        },
+
+        {
+          text: "Modules",
+          items: [
             {
               text: "Change Detection",
               link: "/libraries/fezrs/change-detection",
             },
-            { text: "Clustering", link: "/libraries/fezrs/clustering" },
-            { text: "Filters", link: "/libraries/fezrs/filters" },
-            { text: "GLCM", link: "/libraries/fezrs/glcm" },
-            { text: "HSV", link: "/libraries/fezrs/hsv" },
+            {
+              text: "Clustering",
+              link: "/libraries/fezrs/clustering",
+            },
+            {
+              text: "Filters",
+              link: "/libraries/fezrs/filters",
+            },
+            {
+              text: "GLCM",
+              link: "/libraries/fezrs/glcm",
+            },
+            {
+              text: "HSV",
+              link: "/libraries/fezrs/hsv",
+            },
             {
               text: "Image Enhancement",
               link: "/libraries/fezrs/image-enhancement",
             },
-            { text: "Import Tools", link: "/libraries/fezrs/import-tools" },
-            { text: "Mosaic", link: "/libraries/fezrs/mosaic" },
-            { text: "PCA", link: "/libraries/fezrs/pca" },
+            {
+              text: "Import Tools",
+              link: "/libraries/fezrs/import-tools",
+            },
+            {
+              text: "Mosaic",
+              link: "/libraries/fezrs/mosaic",
+            },
+            {
+              text: "PCA",
+              link: "/libraries/fezrs/pca",
+            },
             {
               text: "Spectral Indices",
               link: "/libraries/fezrs/spectral-indices",
@@ -94,7 +164,10 @@ export default defineConfig({
               text: "Spectral Profile",
               link: "/libraries/fezrs/spectral-profile",
             },
-            { text: "SVM", link: "/libraries/fezrs/svm" },
+            {
+              text: "SVM",
+              link: "/libraries/fezrs/svm",
+            },
           ],
         },
       ],

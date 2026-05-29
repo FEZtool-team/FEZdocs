@@ -1,4 +1,6 @@
-### 1. Module Introduction
+# PCA
+
+### 1. Introduction
 
 This module provides the **Principal Component Analysis (PCA)** algorithm for dimensionality reduction and spectral‑spatial information compression of multi‑band images. In the current implementation, six input bands are transformed into six principal components that explain the variance **across the band dimension**, revealing dominant spatial patterns.
 

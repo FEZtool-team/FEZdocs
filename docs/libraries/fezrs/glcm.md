@@ -1,5 +1,6 @@
+# Gray Level Co-occurrence Matrix
 
-### 1. Module Introduction
+### 1. Introduction
 
 This module provides the ability to compute **Haralick texture features** based on the Gray-Level Co-occurrence Matrix (GLCM). Texture analysis is a fundamental tool in remote sensing for identifying repetitive spatial patterns, quantifying surface heterogeneity, and improving land-cover classification in cases where spectral information alone is insufficient (e.g., distinguishing urban areas from bare soil, or row crops from natural grassland).
 

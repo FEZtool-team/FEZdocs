@@ -1,5 +1,6 @@
+# Spectral Indices
 
-### 1. Module Introduction
+### 1. Introduction
 
 This module provides a set of **spectral indices** for extracting quantitative information from satellite images. Each index highlights a specific surface feature by mathematically combining two or more spectral bands. The indices are widely used in vegetation monitoring, water resource mapping, soil detection, and urban studies.
 

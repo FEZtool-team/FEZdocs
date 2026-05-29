@@ -1,5 +1,6 @@
+# Spectral Profile
 
-### 1. Module Introduction
+### 1. Introduction
 
 This module provides the ability to calculate and plot the **average spectral signature** of a multi‑band satellite image. The spectral profile is a fundamental tool in remote sensing for characterising the dominant surface types present in a scene and for comparing the radiometric behaviour of different land‑cover classes.
 
