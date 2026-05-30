@@ -1,156 +1,268 @@
-# Clustering
+## 1. Module Overview
 
-### 1. Introduction
+The `clustering` module delivers unsupervised machine learning architectures designed for data-driven satellite image partitioning, thematic land-cover mapping, and unsupervised image segmentation. By isolating structural patterns directly from multi-spectral digital numbers ($DN$) without relying on prior training samples or ground-truth regions of interest ($ROI$), this module provides automated spatial categorization baseline maps.
 
-This module provides **clustering algorithms** for analysing satellite images. In the current version, only the **K‑Means** algorithm is implemented. It can be used for **unsupervised classification** of land cover, image segmentation, or the identification of similar spectral patterns without requiring any training data.
+### Core Architecture
 
-**Existing Classes :**
+In its production baseline, the module centers around a highly optimized, single-band iteration of the K-Means clustering algorithm. It inherits directly from the unified core architecture (`fezrs.base.BaseTool`) and integrates smoothly with the file-handling pipelines for automated spatial matrix loading and radiometric range standardization.
 
-| Class Name         | Application                                          |
-| ------------------ | ---------------------------------------------------- |
-| `KMeansCalculator` | K‑Means clustering on a single band (by default NIR) |
+```
+         fezrs.base.BaseTool [Base Architecture]
+                   │
+                   ▼
+   ┌──────────────────────────────────────────────┐
+   │         fezrs.tools.clustering Module        │
+   ├──────────────────────────────────────────────┤
+   │                                              │
+   ▼                                              ▼
+KMeansCalculator [Core Logic]           scikit-learn Pipeline
+   │                                              │
+   ▼                                              ▼
+1D Feature Matrix ──────────────────────► WCSS Minimization Optimization
+```
 
----
+## 2. Comprehensive Class Specification: `KMeansCalculator`
 
-### 2. `KMeansCalculator` – K‑Means Clustering
+### 2.1. Scientific and Mathematical Objective
 
-#### 2.1 Scientific Objective
+The algorithmic mission of `KMeansCalculator` is to partition an input image's continuous spectral space into a discrete number of mutually exclusive, high-homogeneity classes ($K$). The mathematical objective function seeks to minimize the total structural variance within each individual spatial segment. This is achieved by iteratively optimizing cluster assignments to lower the **Within-Cluster Sum of Squares ($WCSS$)**, also known as algorithmic **inertia**.
 
-The goal is to partition the pixels of an input image into a predefined number of groups (`n_clusters`) so that pixels within the same group are as similar as possible to each other, while pixels from different groups are as dissimilar as possible. The K‑Means algorithm achieves this by minimising the **within‑cluster sum of squared errors (WCSS)**, also called inertia.
+In this execution architecture, the model operates over a one-dimensional feature space derived from the standardized pixel magnitudes of the Near-Infrared ($NIR$) band:
 
-In the present implementation, each pixel is represented by a single feature – its digital number (DN) in the NIR band after normalisation. The algorithm therefore operates in a one‑dimensional feature space.
+$$x_i \in \mathbb{R}^1 \quad \forall \quad i \in \{1, 2, \dots, N\}$$
 
-#### 2.2 Full Explanation of the K‑Means Algorithm
+### 2.2. Algorithmic Matrix Iterations & Mathematical Foundations
 
-K‑Means is an iterative, centroid‑based clustering method. Its mathematical formulation is as follows.
+Given a discrete sequence containing $N$ scalar data points $X=\{x_1​,x_2​,…,x_N​\}$ extracted from the flattened image grid, and an explicit user-defined cluster cardinality integer $K$, the mathematical objective minimizes the unified structural cost function $J$:
 
-**Given :**
+$$J = \sum_{k=1}^{K} \sum_{x_i \in C_k} \|x_i - \mu_k\|^2$$
 
-- A set of $N$ data points (pixels) $x1​,x2​,…,xN$, where each point is a vector. In this module, because only one band is used, each $xi$​ is a scalar (the pixel value).
+Where:
+
+- $C_k$​ represents the explicit spatial subset containing all data vectors mapped to the $k$-th cluster group.
     
-- The desired number of clusters $K$.
-
-
-**Objective :**  
-Find a set of $K$ centroids $μ1​,μ2​,…,μK$​ and an assignment of each data point to exactly one cluster that minimises the **within‑cluster sum of squares (WCSS)**:
-
-$$J = \sum_{k=1}^K \sum_{\mathbf{x}_i \in C_k} \| \mathbf{x}_i - \mu_k \|^2$$
-
-where :
-- $Ck$ is the set of points assigned to cluster $k$,
+- $μ_k$​ is the derived geometric mean vector, marking the explicit multidimensional coordinate coordinate position of the $k$-th cluster centroid.
     
-- $μk​$ is the centroid (mean) of the points in $Ck​,$
-    
-- $∥⋅∥$ denotes the Euclidean distance.
+- $∥⋅∥^2$ represents the standard Euclidean norm vector distance metric.
 
 
-In the one‑dimensional case, the Euclidean distance reduces to the absolute difference :
+Because this structural calculator evaluates a singular band domain, the multi-dimensional distance reduces to an absolute scalar square operation:
 
 $$\|x_i - \mu_k\|^2 = (x_i - \mu_k)^2$$
 
-**Algorithm steps (Lloyd’s algorithm) :**
+```
+[Flatten 2D Raster] ──► [Construct 1D Column Matrix] ──► [Seed Centroids via k-means++]
+                                                                   ▲
+                                                                   │ (Iterate Loop)
+[Check Convergence] ◄── [Recalculate Means (M-Step)] ◄── [Map Minimum Distance (E-Step)]
+```
 
-1. **Initialisation :**  
-    Choose $K$ initial centroids. This can be done randomly (as controlled by the `random_state` parameter) or via a more sophisticated method (scikit‑learn’s default is `k-means++`, which spreads initial centroids apart). The initial centroids are denoted $\mu_1^{(0)}, \ldots, \mu_K^{(0)}$
-    
-2. **Assignment step (E‑step) :**  
-    For each data point $xi$​, assign it to the cluster whose centroid is nearest :
-$$C_k^{(t)} = \left\{ x_i : \|x_i - \mu_k^{(t)}\|^2 \leq \|x_i - \mu_j^{(t)}\|^2 \text{ for all } j \neq k \right\}$$
-	
-    Ties are broken arbitrarily.
-    
-3. **Update step (M‑step) :**  
-    Recalculate the centroids as the mean of all points assigned to each cluster :
-	
+#### Detailed Iterative Execution Framework (Lloyd's Optimization Workflow)
+
+##### Step 1: High-Fidelity Initialization Framework
+
+The system seeds $K$ initial centroid coordinates within the scalar spectrum domain:
+
+$$\mu_1^{(0)}, \mu_2^{(0)}, \dots, \mu_K^{(0)}$$
+
+By default, the optimization bypasses standard random seeding in favor of the **`k-means++`** topology. This approach samples initial centroids via a probability distribution proportional to the squared distance from existing centers, ensuring well-spaced initial seeds and accelerating global convergence.
+
+##### Step 2: Spatial Expectation Step (E-Step)
+
+Each individual pixel value $x_i$​ across the entire array is mapped concurrently to its mathematically nearest centroid coordinate position:
+
+$$C_k^{(t)} = \left\{ x_i : (x_i - \mu_k^{(t)})^2 \le (x_i - \mu_j^{(t)})^2 \quad \forall \quad 1 \le j \le K \right\}$$
+
+If a pixel exhibits an identical spatial distance to two separate centroids, the tie is broken arbitrarily using numerical priority logic.
+
+##### Step 3: Maximization Update Step (M-Step)
+
+The coordinate positions of all cluster centroids are updated by computing the arithmetic mean of all pixel values assigned to that specific cluster:
+
 $$\mu_k^{(t+1)} = \frac{1}{|C_k^{(t)}|} \sum_{x_i \in C_k^{(t)}} x_i$$
+
+Where ${|C_k^{(t)}|}$ is the absolute cardinality (total pixel count) of the targeted cluster subset.
+
+##### Step 4: Mathematical Convergence Criteria
+
+The calculator loops Steps 2 and 3 until it meets one of the following stopping criteria:
+
+- The absolute coordinate movement of the centroids falls below the convergence tolerance parameter $(ϵ=1e−4)$:
+
+$$\max_k |\mu_k^{(t+1)} - \mu_k^{(t)}| < \epsilon$$
+
+- The system reaches its maximum execution iteration limit (`max_iter=300`).
+
+### 2.3. Radiometric Mapping Matrix Strategy
+
+Once the clustering routine converges, `kmeans.cluster_centers_` stores the final optimized continuous scalar centroids ($μ_k$​), and `kmeans.labels_` holds the discrete pixel assignments ($0≤label≤K−1$).
+
+Rather than exporting raw categorical class labels, the processing pipeline generates a custom radiometric reconstruction map:
+
+$$\text{Output}[i, j] = \mu_{\text{label}[i, j]}$$
+
+This maps each pixel to the continuous floating-point value of its corresponding cluster centroid. This approach preserves the absolute physical properties of the input data, producing a simplified, constant approximation that remains directly comparable to the input imagery.
+
+### 2.4. Interface Architecture
+
+#### Constructor Method Input Arguments (`__init__`)
+
+- `nir_path` (`str` | `Path`): File location pointing to the single-band raster target (typically Near-Infrared).
     
-    In the scalar case, this is simply the average of the pixel values in the cluster.
+- `n_clusters` (`int`): Target cluster cardinality integer constraint. Must satisfy:
+	
+$$n_{\text{clusters}} \ge 2$$
+	
+- `random_state` (`int` | `None`): Hardcoded seed initialization controller for reproducible centroid generation.
+
+#### Validation Engineering (`_validate`)
+
+The explicit `_validate()` methodology enforces strict programmatic constraints before execution:
+
+1. Verifies that `n_clusters` is a valid integer and greater than or equal to 2.
     
-4. **Convergence check :**  
-    Repeat steps 2 and 3 until the centroids no longer move (or the change is below a tolerance) or a maximum number of iterations is reached. The algorithm is guaranteed to converge to a local minimum of the WCSS.
-
-
-**Application to the image data in the code :**
-
-- The 2D image array ($height × width$) is reshaped into a 1D column vector of length $N=height×width$. Each element is a scalar representing the pixel’s value.
+2. Assures `random_state` matches proper typing constraints (`int` or `None`).
     
-- The K‑Means model from scikit‑learn is then fitted on this data.
+3. Confirms the input raster resolves into a true two-dimensional array (`ndim == 2`).
     
-- After fitting, `kmeans.cluster_centers_` contains the final centroid values (scalars) for each of the $K$ clusters.
-    
-- `kmeans.labels_` contains the integer label (0 to $K-1$) indicating which cluster each pixel belongs to.
-    
-- The output image is constructed by taking, for each pixel, the **centroid value** of its assigned cluster (instead of the label). That is :
+4. Checks the input metadata to ensure positive dimensional extents:
 
-$$\text{output}[i, j] = \mu_{\text{label}[i,j]}$$
+$$\text{Height} > 0 \quad \text{and} \quad \text{Width} > 0$$
 
-  This yields an image where each pixel is represented by the typical value of its cluster, effectively creating a piecewise constant approximation of the original image.
+#### Return State (`process()`)
 
+Returns a continuous floating-point 2D `numpy.ndarray` array with spatial dimensions matching the input image. Each pixel contains the absolute centroid value of its assigned cluster, scaled to the standardized range of $[0.0,1.0]$.
 
-**Why use centroid values instead of labels?** 
-This approach produces a visual output that directly shows the radiometric values characterising each cluster, which can be directly displayed and interpreted. If one needs the discrete class map, the labels can be retrieved by a simple modification of the code (see the technical notes).
+### 2.5. Operational Implementation
 
-#### 2.3 Input Parameters (`__init__`)
-
-|Parameter|Type|Description|
-|---|---|---|
-|`nir_path`|`str` or `Path`|Path to the single‑band image file (usually NIR) to be clustered.|
-|`n_clusters`|`int`|Desired number of clusters. **Must be ≥ 2.**|
-|`random_state`|`int` or `None`|Seed for the random number generator to ensure reproducible results. `None` means random initialisation on every run.|
-
-#### 2.4 Validation (`_validate`)
-
-The `_validate` method is fully implemented and checks :
-
-- `n_clusters` is an `int` and ≥ 2.
-    
-- `random_state` is either `None` or an `int`.
-    
-- The NIR band is a 2D `numpy.ndarray`.
-    
-- The metadata dictionary for the NIR band contains valid positive `width` and `height`.
-
-
-#### 2.5 Return Value (`process`)
-
-- A 2D `numpy.ndarray` of the same height and width as the input image. Each pixel holds the **centroid value** of the cluster to which it belongs (a float, because the input is normalised to $[0,1]$).
-
-
-#### 2.6 Important Note on Output Display
-
-Because the output is a continuous‑valued image (cluster centres), **using an appropriate colormap is essential** for visually distinguishing the clusters. If a default greyscale colormap is used, the cluster centres may appear very similar. Recommended colormaps: `'viridis'`, `'jet'`, `'plasma'` or any perceptually uniform sequential colormap. The `show_colorbar` option helps to interpret the values.
-
-#### 2.7 Usage Example
-```python
+```Python
 from pathlib import Path
 from fezrs.tools.clustering import KMeansCalculator
 
-calc = KMeansCalculator(
-    nir_path="path/to/nir_band.tif",
-    n_clusters=5,
-    random_state=42
+# Initialize the unsupervised K-Means pipeline
+segmentation_engine = KMeansCalculator(
+    nir_path=Path("./data/Sentinel2_NIR.tif"),
+    n_clusters=4,
+    random_state=101
 )
 
-# Note: colormap='viridis' is required to see cluster separation
-calc.execute(
-    output_path="./results/",
-    title="K-Means Clustering (5 Classes)",
+# Execute unsupervised classification and save spatial partitions
+# Note: Perceptually uniform colormaps like 'viridis' or 'plasma' 
+# maximize visual separation across adjacent continuous centroid levels.
+segmentation_engine.execute(
+    output_path="./exports/unsupervised_segments/",
+    title="K-Means Unsupervised Segmentation (4 Classes)",
     colormap="viridis",
     show_colorbar=True,
-    dpi=300
+    dpi=500
 )
 ```
 
----
+## 3. Engineering Enhancements & Vectorization Guide
 
-### 3. Technical Notes and Development Suggestions
+### 3.1. Upgrading to Multi-Spectral Feature Vectors
 
-- **Dependency on scikit‑learn :** This module uses `sklearn.cluster.KMeans`. The installation instructions should confirm that `scikit‑learn` is listed in `requirements.txt`.
+The single-band configuration limits the algorithm's ability to differentiate complex land-cover classes that share similar NIR signatures but differ across other wavelengths (e.g., urban concrete vs. highly reflective soils). Upgrading the feature space to accept arbitrary multi-spectral stacks significantly improves classification accuracy.
+
+#### Production-Ready Multi-Band Architecture
+
+The implementation below updates the initialization logic to process an arbitrary list of spectral bands, reorganizing the feature space into an optimized multi-spectral matrix format:
+
+```Python
+import numpy as np
+from sklearn.cluster import KMeans
+from fezrs.base import BaseTool
+
+class MultiSpectralKMeansCalculator(BaseTool):
+    def __init__(self, band_paths: list, n_clusters: int = 4, random_state: int = 42):
+        # Initialize parent architecture with dynamic band arguments
+        super().__init__(**{f"band_{i}": path for i, path in enumerate(band_paths)})
+        self.n_clusters = n_clusters
+        self.random_state = random_state
+        self.band_paths = band_paths
+
+    def process(self):
+        # Extract and normalize imagery arrays via files_handler
+        bands_list = []
+        for i in range(len(self.band_paths)):
+            band_data = self.files_handler.get_normalized_bands([f"band_{i}"])[f"band_{i}"]
+            bands_list.append(band_data)
+            
+        # Capture precise original spatial layout coordinates
+        height, width = bands_list[0].shape
+        n_bands = len(bands_list)
+        
+        # Stack individual matrices into a continuous multi-spectral array: (Height, Width, Bands)
+        stacked_raster = np.stack(bands_list, axis=2)
+        
+        # Reshape to 2D matrix format: (Total Pixels, Multi-Spectral Features)
+        # Structural Complexity: Transforming from O(N*M) spatial loops into O(1) vectorized blocks
+        feature_matrix = stacked_raster.reshape((height * width, n_bands))
+        
+        # Initialize optimized Scikit-Learn KMeans infrastructure
+        kmeans = KMeans(
+            n_clusters=self.n_clusters, 
+            init="k-means++", 
+            random_state=self.random_state,
+            n_init="auto"
+        )
+        
+        # Fit model on multi-spectral feature vectors
+        labels = kmeans.fit_predict(feature_matrix)
+        centroids = kmeans.cluster_centers_
+        
+        # Map pixels to their respective multi-spectral centroid vector magnitudes
+        # Computes the continuous vector length to generate a visualizable 2D representation
+        centroid_magnitudes = np.linalg.norm(centroids, axis=1)
+        reconstructed_flat = centroid_magnitudes[labels]
+        
+        # Reshape the output vector back to the original 2D spatial dimensions
+        self._output = reconstructed_flat.reshape((height, width))
+        return self._output
+```
+
+### 3.2. Adding Categorical Mask Controls via Dual-Return Vectors
+
+The standard pipeline displays continuous centroid values directly for immediate visualization. However, downstream GIS applications often require discrete categorical index maps (e.g., to perform pixel count evaluations or areal coverage assessments).
+
+To support both workflows, update the execution pipeline to conditionally export standard integer classification maps (`labels_map`) using a `return_labels` configuration flag:
+
+```Python
+def process(self, return_labels: bool = False):
+    self._validate()
     
-- **Single‑band limitation :** Currently only one band (NIR) is used. To improve classification accuracy, multiple bands (e.g., NIR, Red, Green) are typically used simultaneously. **Suggested optimisation :** Modify `__init__` to accept a list of band paths and reshape the data to `(n_pixels, n_bands)`.
+    # Isolate geometry attributes
+    height = self.metadata_shape["nir"]["height"]
+    width = self.metadata_shape["nir"]["width"]
     
-- **Output representation :** The current output replaces pixel values with cluster centres. This is useful for visualisation but not for counting pixels per class.                       **Suggestion:** Add a parameter `return_labels` to allow access to the integer label array (`kmeans.labels_`).
+    # Flatten spatial arrays into unified feature columns
+    flat_features = self.files_handler.get_images_collection()["nir"].flatten().reshape(-1, 1)
     
-- **Performance :** scikit‑learn’s K‑Means is efficient for images of moderate size (a few megapixels). For very large images (e.g., a full Landsat scene of ~8000×8000 pixels), memory and time can become bottlenecks. Future versions could use `MiniBatchKMeans` or sub‑sampling.
+    kmeans = KMeans(n_clusters=self.n_clusters, init="k-means++", random_state=self.random_state)
+    kmeans.fit(flat_features)
     
-- **Empty method `_customize_export_file` :** This hook can be used to add custom annotations or a colour legend to the exported figure.
+    if return_labels:
+        # Export programmatic integer discrete indices directly: [0, 1, ..., K-1]
+        self._output = kmeans.labels_.reshape((height, width))
+    else:
+        # Reconstruct custom continuous scalar centroid map
+        centroids = kmeans.cluster_centers_.flatten()
+        self._output = centroids[kmeans.labels_].reshape((height, width))
+        
+    return self._output
+```
+
+### 3.3. Performance Optimization for Large Raster Datasets
+
+When processing massive satellite grids (e.g., complete Landsat scenes of $≈8000×8000$ pixels), standard K-Means can hit severe memory and compute walls. This bottleneck can be resolved by transitioning the processing pipeline to use **`MiniBatchKMeans`**.
+
+#### Performance Matrix Analysis
+
+- **Standard KMeans (Full Batch):** Computes distance profiles across every single pixel vector simultaneously during each iteration step. This exhibits linear memory scaling requirements $O(N)$ that can quickly exhaust system RAM on large datasets.
+    
+- **MiniBatchKMeans Optimization:** Samples small, randomized pixel subsets (e.g., `batch_size=2048`) during each optimization step. This keeps the memory footprint bounded at a constant value $O(1)$, dramatically reducing execution times while maintaining comparable clustering accuracy.
+
+```
+[Full Batch K-Means]   ──► Computes All ~64M Pixels Simultaneously ──► High RAM Load
+[MiniBatch K-Means]    ──► Iterates via Randomized 2048-Pixel Buffers  ──► Constant RAM Load (Fast)
+```
