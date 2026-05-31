@@ -1,5 +1,6 @@
+# Import Tools
 
-### 1. Module Introduction
+### 1. Introduction
 
 This module is responsible for **extracting and preparing specific bands** from raw satellite imagery. It serves as the entry point of the FEZrs processing chain: users can either load a single multi‑band file (e.g., a GeoEye scene) and pick one band via an index, or supply the individual bands of Landsat 8 (or similar sensors) to construct standard colour composites for visualisation or further analysis.
 

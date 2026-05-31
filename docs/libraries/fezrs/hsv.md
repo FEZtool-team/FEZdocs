@@ -1,5 +1,6 @@
+# HSV
 
-### 1. Module Introduction
+### 1. Introduction
 
 This module provides the ability to convert satellite band composites into the **HSV (Hue, Saturation, Value)** colour space. The HSV space is often more suitable than RGB for visual analysis and for extracting colour‑based features from images, because it separates chromatic information (Hue, Saturation) from intensity (Value). Two separate classes are designed for two different applications in remote sensing.
 

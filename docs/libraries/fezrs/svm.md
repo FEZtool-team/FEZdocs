@@ -1,5 +1,7 @@
+# SVM
 
-### 1. Module Introduction
+
+### 1. Introduction
 
 This module implements the **Support Vector Machine (SVM)** algorithm for supervised classification of multi‑band satellite images. Its distinctive feature is the **interactive selection** of training samples directly on an RGB preview of the image using an OpenCV graphical interface.
 

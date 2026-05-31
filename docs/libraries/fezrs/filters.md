@@ -1,4 +1,6 @@
-### 1. Module Introduction
+# Filters
+
+### 1. Introduction
 
 This module provides a set of **convolution‑based and statistical filters** for enhancing, denoising, and extracting features from single‑band images. These tools are essential pre‑processing steps for many advanced remote sensing analyses such as edge detection, texture analysis, and image segmentation.
 

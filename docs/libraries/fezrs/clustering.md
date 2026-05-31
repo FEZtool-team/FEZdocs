@@ -1,5 +1,6 @@
+# Clustering
 
-### 1. Module Introduction
+### 1. Introduction
 
 This module provides **clustering algorithms** for analysing satellite images. In the current version, only the **K‑Means** algorithm is implemented. It can be used for **unsupervised classification** of land cover, image segmentation, or the identification of similar spectral patterns without requiring any training data.
 

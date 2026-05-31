@@ -1,4 +1,6 @@
-### 1. Module Introduction
+# Mosaic
+
+### 1. Introduction
 
 This module provides the ability to **merge multiple satellite images** (with georeferencing) into a single image in a unified coordinate system. The output is a single GeoTIFF file that can serve as input for any other FEZrs tool, enabling seamless regional or large‑area analyses.
 
