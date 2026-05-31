@@ -1,24 +1,10 @@
-## 1. Module Overview
+# Change Detection
+
+## Module Overview
 
 The `change_detection` module provides a comprehensive suite of remote sensing tools designed to isolate, classify, and quantify temporal surface dynamics using bi-temporal satellite imagery. By analyzing multi-spectral imagery captured across two distinct temporal windows—typically classified as **Pre-Event (t0​, Before)** and **Post-Event (t1​, After)**—these tools facilitate automated monitoring of ecological disturbances such as wildfire burn severity, flood inundation, land-cover conversions, and vegetation degradation.
 
-### Core Architecture
-
-Every operational calculator within this module inherits from the unified base architecture (`fezrs.base.BaseTool`) and integrates seamlessly with `self.files_handler` for low-level file metadata extraction, CRS alignment, and spatial data loading.
-
-```
-       fezrs.base.BaseTool [Base Architecture]
-                 │
-                 ▼
- ┌────────────────────────────────────────────────────────────────────────┐
- │                   fezrs.tools.change_detection Module                  │
- ├───────────────────┬─────────────────────┬──────────────────────────────┤
- │                   │                     │                              │
- ▼                   ▼                     ▼                              ▼
-BurnCalculator   IndicesCalculator   MagDirCalculator    SubDivCalculator & TimeCalculator
-```
-
-## 2. Common Dependencies & Inheritance Model
+## Common Dependencies & Inheritance Model
 
 All tools share a strict, predictable execution lifecycle managed by the parent class's workflow.
 
@@ -29,9 +15,9 @@ All tools share a strict, predictable execution lifecycle managed by the parent 
 - **Output Pipe:** The `execute()` method serializes the internal computed state (`self._output`) directly to disk as geo-referenced arrays or high-fidelity visual matrices using Matplotlib.
 
 
-## 3. Comprehensive Class Specifications
+## Comprehensive Class Specifications
 
-### 3.1. `BurnCalculator` — Wildfire Severity Mapping via Differential Burn Ratios
+### `BurnCalculator` — Wildfire Severity Mapping via Differential Burn Ratios
 
 #### Scientific & Physical Objective
 
@@ -117,7 +103,7 @@ burn_analyzer.execute(
 )
 ```
 
-### 3.2. `IndicesCalculator` — Single-Date Baseline Radiometric Evaluation
+### `IndicesCalculator` — Single-Date Baseline Radiometric Evaluation
 
 #### Scientific & Physical Objective
 
@@ -179,7 +165,7 @@ nbr_baseline.execute(
 )
 ```
 
-### 3.3. `MagDirCalculator` — Multi-Spectral Change Vector Analysis (CVA)
+### `MagDirCalculator` — Multi-Spectral Change Vector Analysis (CVA)
 
 #### Scientific & Physical Objective
 
@@ -195,7 +181,7 @@ The corresponding **Change Vector** ($V$) is defined as:
 
 $$V = \begin{bmatrix} \Delta NIR \\ \Delta SWIR1 \end{bmatrix} = \begin{bmatrix} NIR_{t_1} - NIR_{t_0} \\ SWIR1_{t_1} - SWIR1_{t_0} \end{bmatrix}$$
 
-##### 1. Change Vector Magnitude (∣$V$∣)
+##### Change Vector Magnitude (∣$V$∣)
 
 The total geometric shift across spectral feature space is calculated using the Euclidean distance equation:
 
@@ -203,7 +189,7 @@ $$|V| = \sqrt{(NIR_{t_1} - NIR_{t_0})^2 + (SWIR1_{t_1} - SWIR1_{t_0})^2}$$
 
 Higher values indicate intense land-cover modifications (e.g., rapid deforestation, urban clearings, or severe wildfire devastation), independent of the qualitative nature of the change.
 
-##### 2. Change Vector Directional Coding
+##### Change Vector Directional Coding
 
 The discrete directional quadrant (1 through 4) indicates the path taken by the pixel trajectory across the spectral domain. These paths map directly to distinct qualitative environmental transformations:
 
@@ -272,7 +258,7 @@ cva_engine.execute(
 )
 ```
 
-### 3.4. `SubDivCalculator` — Direct Linear Differencing and Ratio Computations
+### `SubDivCalculator` — Direct Linear Differencing and Ratio Computations
 
 #### Scientific & Physical Objective
 
@@ -282,13 +268,13 @@ cva_engine.execute(
 
 The system processes change tracking across two structural arithmetic options:
 
-##### 1. Subtraction Mode (`operation="subtract"`)
+##### Subtraction Mode (`operation="subtract"`)
 
 $$\Delta_{\text{Reflectance}} = Band_{t_0} - Band_{t_1}$$
 
 This calculation preserves the original radiometric values of the scene. Positive results indicate a drop in surface reflection at $t_1$​ (e.g., vegetative harvesting), while negative results capture localized reflection gains (e.g., sediment deposits or building developments).
 
-##### 2. Division Mode (`operation="divide"`)
+##### Division Mode (`operation="divide"`)
 
 $$R_{\text{Reflectance}} = \frac{Band_{t_0}}{Band_{t_1}}$$
 
@@ -336,7 +322,7 @@ linear_diff.execute(
 )
 ```
 
-### 3.5. `TimeCalculator` — Bi-Temporal Extraction and Diagnostic Baseline Isolation
+### `TimeCalculator` — Bi-Temporal Extraction and Diagnostic Baseline Isolation
 
 #### Scientific & Physical Objective
 
@@ -375,79 +361,4 @@ raw_viewer.execute(
     colormap="gray",
     dpi=500
 )
-```
-
-## 4. Engineering Enhancements & Vectorization Guide
-
-### 4.1. Crucial Architectural Upgrades for Stability
-
-1. **Bi-Temporal Spatial Validation:** The current placeholder in `_validate()` should be upgraded to enforce strict coordinate alignment. If a user feeds mismatched raster extensions into the pipeline, the system will raise an immediate, informative error before attempting unaligned matrix calculations.
-    
-```Python
-def _validate(self):
-    # Ensure absolute shape equivalence to prevent internal NumPy broadcasting failure
-    shape_before = self.files_handler.get_metadata_bands(["before_nir"])["before_nir"]["image_skimage"].shape
-    shape_after = self.files_handler.get_metadata_bands(["nir"])["nir"]["image_skimage"].shape
-
-    if shape_before != shape_after:
-        raise ValueError(
-            f"Bi-temporal Spatial Alignment Mismatch Error: Pre-event dimension {shape_before} "
-            f"cannot execute broadcasting operations alongside Post-event dimension {shape_after}."
-        )
-```
-    
-2. **Safe Division Guarding via Epsilon Topologies:** To systematically eliminate divide-by-zero or $NaN$ issues across indices or division operations, add a low-level micro-constant ($ϵ=1e−10$) to calculations.
-
-### 4.2. Vectorizing `MagDirCalculator` Loop Operations
-
-The original iteration used standard Python loops to compute Change Vector Analysis (CVA). This creates a performance bottleneck when processing large satellite datasets (such as complete Landsat or Sentinel scenes).
-
-#### Performance Matrix Breakdown
-
-- **Loop Implementation:** O(N×M) time complexity. This requires nested operations across every coordinate row and column, creating severe processing delays on massive raster grids.
-    
-- **Vectorized Architecture:** O(1) array operations. This offloads calculations to low-level C compiled vector pipelines in NumPy, executing entire raster grids concurrently.
-
-
-```
-[Standard Loop Processing]  ──► [Pixel (0,0)] ──► [Pixel (0,1)] ──► [Pixel (0,2)] ... (Slow)
-[Vectorized Processing]     ──► [[ Entire Raster Matrix Grid Combined ]] ──────► SIMD (Ultrafast)
-```
-
-#### Production-Ready Optimized Implementation
-
-Replace the iterative loops inside `MagDirCalculator.process()` with the vectorized implementation below:
-
-```Python
-def process(self):
-    self._validate()
-    
-    # Extract structural arrays instantaneously
-    nir_t0 = self.files_handler.get_images_collection()["before_nir"]
-    swir_t0 = self.files_handler.get_images_collection()["before_swir1"]
-    nir_t1 = self.files_handler.get_images_collection()["nir"]
-    swir_t1 = self.files_handler.get_images_collection()["swir1"]
-    
-    # Vectorized compute metrics mapping absolute deltas
-    diff_nir = nir_t1 - nir_t0
-    diff_swir = swir_t1 - swir_t0
-    
-    if self.selecte == "magnitude":
-        # Multi-dimensional Euclidean distance calculated concurrently
-        self._output = np.sqrt(np.square(diff_nir) + np.square(diff_swir))
-        
-    elif self.selecte == "direction":
-        # Construct logical boolean truth masks
-        cond_quad_1 = (diff_nir < 0) & (diff_swir < 0)
-        cond_quad_2 = (diff_nir >= 0) & (diff_swir < 0)
-        cond_quad_3 = (diff_nir < 0) & (diff_swir >= 0)
-        cond_quad_4 = (diff_nir >= 0) & (diff_swir >= 0)
-        
-        # Parallel element selection using np.select
-        conditions = [cond_quad_1, cond_quad_2, cond_quad_3, cond_quad_4]
-        choices = [1, 2, 3, 4]
-        
-        self._output = np.select(conditions, choices, default=1)
-        
-    return self._output
 ```
