@@ -6,8 +6,6 @@ FEZrs embraces the **"simple yet powerful"** design principle.
 
 Most tools in this library share a **unified structure** and can be used in a similar way — this makes learning and using FEZrs extremely easy and intuitive.
 
-> Unless noted otherwise, nearly **all modules can be used as shown in the [Usage](docs/getting-started.md) section**.
-
 These modules serve as **core calculators** for the main tool categories like:
 
 - `change_detection`
