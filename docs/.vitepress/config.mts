@@ -10,13 +10,16 @@ export default defineConfig({
   base: "/FEZdocs/",
 
   head: [
-    ["link", { rel: "icon", type: "image/svg+xml", href: "/FEZtool_dark.svg" }],
+    [
+      "link",
+      { rel: "icon", type: "image/svg+xml", href: "/FEZtool-white-logo.png" },
+    ],
   ],
 
   themeConfig: {
     logo: {
-      light: "/FEZtool_light.svg",
-      dark: "/FEZtool_dark.svg",
+      light: "/FEZtool-black-logo.png",
+      dark: "/FEZtool-white-logo.png",
     },
     siteTitle: "",
     nav: [
