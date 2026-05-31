@@ -54,7 +54,7 @@ By default, the optimization bypasses standard random seeding in favor of the **
 
 Each individual pixel value $x_i$​ across the entire array is mapped concurrently to its mathematically nearest centroid coordinate position:
 
-$$C_k^{(t)} = \left\{ x_i : (x_i - \mu_k^{(t)})^2 \le (x_i - \mu_j^{(t)})^2 \quad \forall \quad 1 \le j \le K \right\}$$
+$$C_k^{(t)} = \{ x_i : (x_i - \mu_k^{(t)})^2 \le (x_i - \mu_j^{(t)})^2 \quad \forall \quad 1 \le j \le K \}$$
 
 If a pixel exhibits an identical spatial distance to two separate centroids, the tie is broken arbitrarily using numerical priority logic.
 
