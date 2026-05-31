@@ -1,8 +1,8 @@
 # Introduction
 
-Welcome to **FEZdoc**, the official documentation platform for the **FEZtool** ecosystem — a growing collection of open-source tools and libraries focused on remote sensing, geospatial analysis, image processing, and scientific computing.
+**FEZdocs**, the official documentation platform for the **FEZtool** ecosystem — a growing collection of open-source tools and libraries focused on remote sensing, geospatial analysis, image processing, and scientific computing.
 
-FEZdoc is designed to provide clear, structured, and developer-friendly documentation for every package maintained under the FEZtool project. Whether you are a researcher, developer, student, or contributor, this documentation hub aims to help you quickly understand, install, and use FEZtool libraries effectively.
+FEZdocs is designed to provide clear, structured, and developer-friendly documentation for every package maintained under the FEZtool project. Whether you are a researcher, developer, student, or contributor, this documentation hub aims to help you quickly understand, install, and use FEZtool libraries effectively.
 
 ---
 
@@ -40,15 +40,15 @@ According to its project description, FEZrs provides tools for:
 - TIFF-based workflows
 - Integration with modern Python applications and APIs
 
-The package is distributed through PyPI and supports Python 3.10+. ([PyPI][1])
+The package is distributed through PyPI and supports Python 3.10+.
 
 ---
 
-## Why FEZdoc Exists
+## Why FEZdocs Exists
 
 As the FEZtool ecosystem grows, maintaining organized and accessible documentation becomes increasingly important.
 
-FEZdoc was created to:
+FEZdocs was created to:
 
 - Centralize documentation for all FEZtool projects
 - Provide installation and usage guides
@@ -63,7 +63,7 @@ This repository currently serves as the main documentation hub while the ecosyst
 
 ## Current Status
 
-FEZdoc is currently in an early stage and hosted directly under the maintainer’s GitHub account while the platform and libraries continue to mature.
+FEZdocs is currently in an early stage and hosted directly under the maintainer’s GitHub account while the platform and libraries continue to mature.
 
 The documentation structure, design, and content are continuously improving and may change significantly over time until the project reaches a stable public release.
 
