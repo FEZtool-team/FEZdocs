@@ -18,7 +18,7 @@ The complete training array gathered via the user interface consists of $N_{\tex
 
 $$\mathcal{D} = \left\{ (\mathbf{x}_i, y_i) \mid \mathbf{x}_i \in \mathbb{R}^6, \,\, y_i \in \{1, 2, \dots, K\} \right\}_{i=1}^{N_{\text{train}}}$$
 
-Where $K$ represents the total number of target land-cover classes, and $N_{\text{train}} = K \times \text{sample\_number}$.
+Where $K$ represents the total number of target land-cover classes, and $N_{\text{train}} = K \times \text{sample\ number}$.
 
 ### The Binary Maximal Margin Classifier
 
