@@ -1,4 +1,4 @@
-# Spectral indices
+# Spectral Indices
 
 ## Module Overview
 
