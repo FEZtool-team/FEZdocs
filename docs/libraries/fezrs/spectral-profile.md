@@ -1,4 +1,4 @@
-# Spectral profile
+# Spectral Profile
 
 ## Module Overview
 
