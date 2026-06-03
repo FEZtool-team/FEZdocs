@@ -1,4 +1,4 @@
-# Image enhancement
+# Image Enhancement
 
 ## Module Overview
 
