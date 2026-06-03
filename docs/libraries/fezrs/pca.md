@@ -1,4 +1,4 @@
-# Pca
+# PCA
 
 ## Module Overview
 
