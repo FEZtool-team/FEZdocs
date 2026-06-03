@@ -1,4 +1,4 @@
-# Glcm (Gray Level Co-occurrence Matrix)
+# GLCM (Gray Level Co-occurrence Matrix)
 
 ## Module Overview
 
