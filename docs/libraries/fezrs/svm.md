@@ -1,206 +1,131 @@
-# SVM
+# Svm
 
+## Module Overview
 
-### 1. Introduction
+The `svm` module implements a Supervised Support Vector Machine (SVM) classification architecture designed for land-cover mapping and thematic feature extraction from multi-spectral satellite imagery. The module bridges machine learning workflows and interactive geospatial data engineering by providing an integrated graphical interface for manual training site selection.
 
-This module implements the **Support Vector Machine (SVM)** algorithm for supervised classification of multi‑band satellite images. Its distinctive feature is the **interactive selection** of training samples directly on an RGB preview of the image using an OpenCV graphical interface.
+Using an interactive OpenCV window, analysts select training coordinates directly on a live RGB preview of the image. The class extracts the underlying six-dimensional spectral profiles at those specific coordinates, trains an SVM model using a soft-margin Radial Basis Function (RBF) kernel, and classifies the remaining pixels across the entire spatial grid.
 
-**Existing Classes :**
+## Comprehensive Mathematical Foundations
 
-| Class Name      | Application                                                                |
-| --------------- | -------------------------------------------------------------------------- |
-| `SVMCalculator` | Image classification with SVM and training sample selection via OpenCV GUI |
+### Feature Representation Space
 
-**Note on `__init__.py` :** The file `__init__.py` inside the `svm` folder is currently empty. It must be corrected to export the class :
-``` python
- from .svm_calculator import SVMCalculator
-``` 
+Each independent image pixel is treated as a distinct statistical sample in a six-dimensional spectral space. The feature vector $\mathbf{x}$ for a given coordinate is formed by stacking its normalized reflectance values from the six available bands:
 
- ---
+$$\mathbf{x} = \begin{bmatrix} x_{\text{Red}} & x_{\text{Green}} & x_{\text{Blue}} & x_{\text{NIR}} & x_{\text{SWIR1}} & x_{\text{SWIR2}} \end{bmatrix}^T \in \mathbb{R}^6$$
 
-### 2. `SVMCalculator` – Supervised SVM Classification
+The complete training array gathered via the user interface consists of $N_{\text{train}}$ examples:
 
-#### 2.1 Scientific Objective
+$$\mathcal{D} = \left\{ (\mathbf{x}_i, y_i) \mid \mathbf{x}_i \in \mathbb{R}^6, \,\, y_i \in \{1, 2, \dots, K\} \right\}_{i=1}^{N_{\text{train}}}$$
 
-Separate different land‑cover types (water, forest, urban area, bare soil, etc.) by training a Support Vector Machine on user‑selected pixels. The algorithm learns a decision boundary in the six‑dimensional spectral space and then classifies every pixel of the image accordingly.
+Where $K$ represents the total number of target land-cover classes, and $N_{\text{train}} = K \times \text{sample\_number}$.
 
-#### 2.2 Full Mathematical Explanation of the SVM Algorithm Used
+### The Binary Maximal Margin Classifier
 
-The core of the classification is a supervised machine learning method that constructs a separating hyperplane (or set of hyperplanes) in a high‑dimensional feature space, maximising the margin between different classes.
+For a simplified two-class scenario where labels are encoded as $y_i \in \{-1, +1\}$, the algorithm constructs a separating hyperplane defined by a weight vector $\mathbf{w}$ and a bias offset $b$:
 
-**1. Feature representation**
+$$\mathbf{w}^T \mathbf{x} + b = 0$$
 
-Each pixel is represented by a feature vector of length 6 : its reflectance (or normalised digital number) in the six input bands :
+The SVM maximizes the functional margin—the geometric distance from the splitting hyperplane to the closest training vectors (the **support vectors**)—by solving the following constrained quadratic optimization problem:
 
-$$x = [\text{Red, Green, Blue, NIR, SWIR1, SWIR2}]^T \in \mathbb{R}^6$$
+$$\min_{\mathbf{w}, b} \frac{1}{2} \|\mathbf{w}\|^2 \quad \text{subject to} \quad y_i(\mathbf{w}^T \mathbf{x}_i + b) \ge 1, \quad \forall i \in \{1, \dots, N_{\text{train}}\}$$
 
-The training set consists of $N$ labelled examples $(xi​,yi​)$, where $y_i \in \{1, \ldots, K\}$ (with $K = \text{class\_number}$) is the class label manually assigned by the user.
+### Soft-Margin Formulations ($C$-SVM)
 
-**2. The binary SVM – maximal margin classifier**
+Real-world satellite observations are rarely perfectly separable in their raw spectral states due to mixed pixels, atmospheric variations, and overlapping land-cover signatures. To handle these non-separable distributions, the model introduces positive slack variables ($\xi_i \ge 0$) that allow controlled misclassifications during training:
 
-Originally, SVM is a binary classifier. For two classes with labels encoded as $+1$ and $−1$, it seeks the hyperplane
+$$\min_{\mathbf{w}, b, \boldsymbol{\xi}} \frac{1}{2} \|\mathbf{w}\|^2 + C \sum_{i=1}^{N_{\text{train}}} \xi_i \quad \text{subject to} \quad y_i(\mathbf{w}^T \mathbf{x}_i + b) \ge 1 - \xi_i, \quad \xi_i \ge 0$$
 
-$$w^T x + b = 0$$
+The regularization parameter $C > 0$ determines the balance between margin width and training error enforcement. A large value of $C$ penalizes misclassifications heavily, forcing a narrower margin focused on training accuracy, while a smaller $C$ allows more training errors to achieve a wider, more generalizable margin. The module uses a default setting of $C=1.0$.
 
-that separates the classes with the largest possible **margin**. The margin is defined as the distance from the hyperplane to the nearest data point of any class. Maximising the margin leads to the optimisation problem :
+### Non-Linear Mapping and the Radial Basis Function (RBF) Kernel
 
-$$\min_{w,b} \frac{1}{2} \|w\|^2$$
+To resolve complex, non-linear boundaries between different land-cover types, the algorithm uses the **kernel trick**. This approach implicitly projects the raw six-dimensional feature vectors into an infinite-dimensional Hilbert space ($\Phi: \mathbb{R}^6 \to \mathcal{H}$), allowing the model to compute linear separations within this high-dimensional space. The resulting decision boundary is defined by:
 
-subject to
+$$f(\mathbf{x}) = \sum_{i \in \text{SV}} \alpha_i y_i K(\mathbf{x}_i, \mathbf{x}) + b$$
 
-$$y_i(\mathbf{w}^\top \mathbf{x}_i + b) \geq 1 \quad \forall i$$
+Where $\alpha_i$ represents the calculated Lagrange multipliers. The system uses a non-linear **Radial Basis Function (RBF)** kernel:
 
-The points lying exactly on the boundaries $y_i​(w^⊤x_i​+b)=1$ are the **support vectors**.
+$$K(\mathbf{x}_i, \mathbf{x}_j) = \exp\left(-\gamma \|\mathbf{x}_i - \mathbf{x}_j\|^2\right)$$
 
-**3. Soft‑margin SVM (C‑SVM)**
+The kernel width parameter $\gamma$ controls the radius of influence for individual support vectors. The module configures this parameter using scikit-learn's adaptive `scale` heuristic:
 
-When the data are not perfectly separable, slack variables $ξi​≥0$ are introduced to allow some misclassification :
+$$\gamma = \frac{1}{n_{\text{features}} \times \text{Var}(X)} = \frac{1}{6 \times \text{Var}(X)}$$
 
-$$\min_{w,b,\xi} \frac{1}{2} \|w\|^2 + C \sum_{i=1}^N \xi_i$$
+Where $\text{Var}(X)$ is the total variance calculated across the training dataset matrix. This modification scales the kernel's distance sensitivity to match the overall spread of the training data.
 
-subject to
+### One-vs-One Multi-Class Strategy
 
-$$y_i(\mathbf{w}^\top \mathbf{x}_i + b) \geq 1 - \xi_i, \quad \xi_i \geq 0$$
+Because Support Vector Machines are fundamentally binary classifiers, the system handles multi-class land-cover problems ($K \ge 3$) using a **One-vs-One (OvO)** multi-class reduction strategy.
 
-The parameter $C>0$ controls the trade‑off between a wide margin and the number of misclassified training points. In the code, the default $C=1$ is used (scikit‑learn’s default).
+The engine trains a total of $\frac{K(K-1)}{2}$ unique binary classifiers, where each model is optimized to separate a specific pair of classes. During the prediction step for an unlabelled pixel, all binary classifiers evaluate the feature vector, and each assigns its output to the winning class. A final majority-voting block counts these pairwise outcomes and assigns the pixel to the class with the most votes:
 
-**4. The kernel trick and the RBF kernel**
+$$\hat{y} = \arg\max_{k \in \{1, \dots, K\}} \sum_{m=1}^{K(K-1)/2} \mathbb{I}\left(\text{Classifier}_m(\mathbf{x}) == k\right)$$
 
-For data that are not linearly separable in the original feature space, SVM can implicitly map the input vectors into a higher‑dimensional space via a kernel function $K(x_i​,x_j​)=ϕ(x_i​)^⊤ϕ(x_j​)$. The decision function then becomes
+## Class Specification: `SVMCalculator`
 
-$$f(x) = \sum_{i \in SV} \alpha_i y_i K(x_i, x) + b$$
+### 3.1. Operational Interface Parameters
 
-where $α_i$​ are the Lagrange multipliers obtained from the dual problem.
+#### Constructor Arguments (`__init__`)
 
-The code uses the **Radial Basis Function (RBF)** kernel with `gamma='scale'` (the scikit‑learn default for SVC). The RBF kernel is defined as :
-
-$$K(x_i, x_j) = \exp\left(-\gamma\|x_i - x_j\|^2\right)$$
-
-When `gamma='scale'`, the parameter is computed automatically as
-
-$$\gamma = \frac{1}{n_{\text{features}} \times \text{Var}(X)}$$
-
-where $n_{features}​=6$ and $Var(X)$ is the variance of the training data. This adaptive scaling ensures that the kernel’s sensitivity to distance is appropriate for the spread of the data.
-
-**5. Multi‑class classification**
-
-While SVM is inherently binary, the code uses scikit‑learn’s `SVC` which handles multiple classes by a **one‑versus‑one** strategy : for $K$ classes, $K(K−1)/2$ binary classifiers are trained. Each classifier separates a pair of classes. A new pixel is assigned to the class that wins the most pairwise contests.
-
-**6. Application in the code**
-
-- The training data matrix $X$ has shape $(N_{train}​,6)$, where $N_{train}=class\_number×sample\_number$.
+- `red_path`, `green_path`, `blue_path` (`str` | `Path`): File paths to the visible bands, used to construct the interactive RGB selection canvas.
     
-- The label vector $Y$ is built by repeating the class numbers : class 1 repeated `sample_number` times, then class 2, etc.
+- `nir_path`, `swir1_path`, `swir2_path` (`str` | `Path`): File paths to the remaining infrared bands, providing the additional dimensions for the 6D feature space.
     
-- After the user clicks the last required sample, the SVM is trained :
+- `class_number` (`int`, default=`4`): Total number of discrete land-cover categories to classify ($K \ge 2$).
     
-```python
-clf = svm.SVC(gamma="scale")
-clf.fit(X, Y)
-```
+- `sample_number` (`int`, default=`10`): Number of training pixels to collect per class ($\ge 1$).
+
+#### Interactive Sample Collection Workflow
+
+1. Executing the module initializes an interactive OpenCV graphical canvas titled `"mouseClick"`, which displays a normalized RGB composite generated from the visible bands.
     
+2. The user must click representative pixels for each target class in a strict, sequential order. The interface expects all samples for Class 1 first, followed by all samples for Class 2, and so on, continuing up to Class $K$.
     
-- The prediction step applies the trained classifier to **all** pixels of the image, reshaped to a matrix of shape $(H×W,6)$ :
+3. Once the user records the total required number of clicks ($K \times \text{sample\_number}$), the interaction window closes automatically, and the pipeline starts training the SVM model.
+
+#### Internal Data Validation Constraints (`_validate`)
+
+- Verifies that `class_number >= 2` and `sample_number >= 1`.
     
-```python
-pred = clf.predict(all_image_reshape)
-```
+- Confirms that the requested total number of training samples does not exceed the absolute pixel count of the input image.
     
-    
-- The resulting 1D array of class labels is reshaped back to $(H,W)$ and stored as the output. The classification map contains integer values from 1 to `class_number`.
+- Checks if the training samples make up more than 5% of the total pixel population. If exceeded, it triggers an optimization warning to alert the user to the high manual workload.
 
+#### Output State
 
-**7. Decision function and probability**
+Returns a 2D `numpy.ndarray` of shape `(Height, Width)` containing integer class labels ranging from `1` to `class_number`.
 
-For an individual pixel $x$, the class label $\hat{y}$​ is determined by the majority vote among the binary classifiers. The distance to the hyperplane (decision function value) can optionally be obtained, but the code currently returns only the discrete class labels.
+### Concrete Execution Example
 
-**Input parameters (`__init__`) :**
-
-|Parameter|Type|Default|Description|
-|---|---|---|---|
-|`red_path`|`Path`|–|Red band file|
-|`green_path`|`Path`|–|Green band file|
-|`blue_path`|`Path`|–|Blue band file|
-|`nir_path`|`Path`|–|NIR band file|
-|`swir1_path`|`Path`|–|SWIR1 band file|
-|`swir2_path`|`Path`|–|SWIR2 band file|
-|`class_number`|`int`|`4`|Number of land‑cover classes (≥ 2).|
-|`sample_number`|`int`|`10`|Number of training pixels per class (≥ 1).|
-
-**Interactive execution process :**
-
-1. An OpenCV window titled `"mouseClick"` opens showing an RGB composite (R = Red, G = Green, B = Blue, all normalised to $[0,1]$).
-    
-2. The user must click on representative pixels for each class, in order: all samples for class 1 first, then class 2, …, up to class `class_number`.
-    
-3. After `class_number × sample_number` left‑clicks, training starts automatically.
-    
-4. The trained SVM classifies every pixel in the image.
-    
-5. The thematic map is saved to the specified output directory as a PNG file (and optionally GeoTIFF if implemented in the future).
-
-
-**Validation (`_validate`) :**
-
-- Ensures `class_number` ≥ 2 and `sample_number` ≥ 1.
-    
-- Verifies that the total number of requested samples does not exceed the number of pixels.
-    
-- Issues a warning if the total sample count exceeds 5 % of all pixels (indicating a heavy manual workload).    
-
-**Return value :**
-
-- A 2D `numpy.ndarray` of shape $(H,W)$ containing integer class labels (1 to `class_number`).
-
-
-**Usage example :**
-```python
+```Python
+from pathlib import Path
 from fezrs.tools.svm import SVMCalculator
 
-calc = SVMCalculator(
-    red_path="B4.tif",
-    green_path="B3.tif",
-    blue_path="B2.tif",
-    nir_path="B5.tif",
-    swir1_path="B6.tif",
-    swir2_path="B7.tif",
-    class_number=5,
-    sample_number=15
+# Instantiate the interactive SVM classification engine
+classifier = SVMCalculator(
+    red_path=Path("./imagery/Landsat_B4.tif"),
+    green_path=Path("./imagery/Landsat_B3.tif"),
+    blue_path=Path("./imagery/Landsat_B2.tif"),
+    nir_path=Path("./imagery/Landsat_B5.tif"),
+    swir1_path=Path("./imagery/Landsat_B6.tif"),
+    swir2_path=Path("./imagery/Landsat_B7.tif"),
+    class_number=4,   # E.g., Class 1: Water, 2: Forest, 3: Urban, 4: Soil
+    sample_number=12  # Collect 12 clicked pixel locations for each class
 )
-# An OpenCV window will appear; select 5 classes × 15 samples manually.
-calc.execute(output_path="./results/", title="Land Cover Map", colormap="tab10")
+
+# Run the tool: this launches the GUI window, trains the model, and exports the final map
+thematic_map = classifier.execute(
+    output_path="./exports/classification/",
+    title="SVM_Land_Cover_Map",
+    colormap="tab10"
+)
 ```
 
----
+## Key Operational Considerations
 
-### 3. Important Technical Notes
-
-- **GUI requirement :** The tool uses `cv2.imshow` and therefore **requires a graphical display**. It will not run on headless servers or online notebooks without an X11 virtual framebuffer (Xvfb).
+- **Headless Display Dependencies:** Because the tool uses `cv2.imshow` for interactive pixel selection, it requires an active graphical windowing system. Running this tool on headless cloud instances, Docker containers, or Jupyter notebooks without configuring a virtual framebuffer (such as `Xvfb`) will cause a terminal application crash.
     
-- **Dependencies :** `opencv-python`, `scikit-learn`, `pandas`, `scikit-image`.
+- **Strict Coordinate Input Order:** The matrix construction logic maps labels based on the exact time sequence of user clicks. The first block of clicks is assigned to Class 1, the second to Class 2, and so on. If the user clicks targets out of order, the training dataset will contain incorrect labels, leading to flawed classification results.
     
-- **Memory usage :** The entire six‑band image is loaded into memory as a single array of shape $(H×W,6)$. For a full Landsat scene (~8000×8000 pixels), this consumes approximately $8000 \times 8000 \times 6 \times 4 \text{ bytes} \approx 1.5 \text{ GB}$. Very large scenes may require sub‑sampling or chunked processing.
-    
-- **Order of sample collection :** The user must strictly follow the class order. The DataFrame is constructed so that the first `sample_number` rows correspond to class 1, the next group to class 2, etc. Any deviation will assign wrong labels.
-    
-- **Fixed SVM hyperparameters :** The code uses the RBF kernel with `gamma='scale'` and regularization parameter `C=1` (the scikit‑learn defaults). These values are not exposed to the user but can be changed directly in the source code.
-    
-- **No feature standardisation :** The feature vectors are taken from the normalised bands (already in $[0,1]$). While the bands are on a common scale, their variances can differ significantly. Standardising (zero mean, unit variance per feature) before training could improve accuracy and is a recommended future enhancement.
-    
-- **The `__init__.py` file :** At the time of writing, `svm/__init__.py` is empty. It must be created with the correct import statement as shown in Section 1.
-
----
-
-### 4. Suggestions for Development
-
-- **Save and load training samples :** Enable exporting the clicked coordinates to a CSV or shapefile for reuse in later sessions or to share with collaborators.
-    
-- **Non‑interactive mode :** Add the ability to pass training data directly from a file (e.g., a CSV of feature vectors and labels) to allow batch processing and scripted workflows.
-    
-- **Expose SVM parameters :** Allow the user to choose the kernel (`'linear'`, `'poly'`, `'rbf'`, `'sigmoid'`), the regularisation parameter $C$, and the kernel coefficient $γ$ via the constructor arguments.
-    
-- **Feature standardisation :** Add a boolean parameter `scale=True` that would apply `sklearn.preprocessing.StandardScaler` to the input bands before training and prediction.
-    
-- **On‑screen feedback :** Display a counter (e.g., `"Class 2 – sample 3/10"`) directly on the OpenCV image to prevent confusion during the lengthy clicking procedure.
-    
-- **Probability output :** Use `svm.SVC(probability=True)` and return class probabilities in addition to (or instead of) hard labels, enabling uncertainty analysis.
+- **Feature Scaling Profiles:** While input bands are normalized to a standard $[0.0, 1.0]$ range, individual channels often retain significantly different underlying variances. Because SVM optimization is sensitive to scale variations across its input features, implementing an explicit standardization step can help improve overall classification accuracy.
