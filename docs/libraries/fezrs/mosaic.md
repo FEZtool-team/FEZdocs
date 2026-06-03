@@ -81,9 +81,11 @@ When multiple input images overlap the same geographic area, the module applies 
 The engine evaluates input files in the order they appear in the provided file list. For each output pixel location, it selects the value from the first image in the list that contains valid data (non-nodata values) at those coordinates:
 
 $$
-Output(x,y)=I_{k^{*}}(x,y)
-\quad \text{where} \quad
-k^{*}=\min(\{k \mid I_k \text{ is valid at } (x,y)\})
+\mathrm{Output}(x,y)=I_{k^{*}}(x,y)
+\quad
+\mathrm{where}
+\quad
+k^{*}=\min\left\{k \mid I_k \text{ is valid at } (x,y)\right\}
 $$
 
 Any data from subsequent overlapping layers is ignored at that specific location.
