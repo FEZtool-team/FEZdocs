@@ -1,4 +1,4 @@
-# Svm
+# SVM
 
 ## Module Overview
 
