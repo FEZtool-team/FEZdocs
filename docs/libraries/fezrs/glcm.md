@@ -127,7 +127,7 @@ Input Image (H x W)    Sliding Analysis Window    Output Raster Construction
 - `window_size` (`int`): Dimension of the square local analysis window. Must be an odd integer satisfying:
     
 
-$$\mathit{window_size} \ge 3$$
+$$\text{window\ size} \ge 3$$
 	
 - `propery` (`str`): Target Haralick feature name selection. Must match one of the following strings:
     
