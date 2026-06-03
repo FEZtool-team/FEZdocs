@@ -82,10 +82,8 @@ The engine evaluates input files in the order they appear in the provided file l
 
 $$
 \mathrm{Output}(x,y)=I_{k^{*}}(x,y)
-\quad
-\mathrm{where}
-\quad
-k^{*}=\min\left\{k \mid I_k \text{ is valid at } (x,y)\right\}
+\quad \mathrm{where} \quad
+k^{*}=\min(k \mid I_k \text{ is valid at } (x,y))
 $$
 
 Any data from subsequent overlapping layers is ignored at that specific location.
