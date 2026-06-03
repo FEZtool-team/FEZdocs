@@ -1,165 +1,152 @@
-# PCA
+# Pca
 
-### 1. Introduction
+## Module Overview
 
-This module provides the **Principal Component Analysis (PCA)** algorithm for dimensionality reduction and spectral‑spatial information compression of multi‑band images. In the current implementation, six input bands are transformed into six principal components that explain the variance **across the band dimension**, revealing dominant spatial patterns.
+The `pca` module implements a Principal Component Analysis (PCA) workflow designed for dimensionality reduction, spectral-spatial information compression, and uncorrelated feature extraction from multi-spectral satellite imagery. Satellite sensors capture surface reflectance across multiple overlapping spectral bands, which often results in high data redundancy and strong correlation between adjacent channels.
 
-**Existing Classes :**
+This module unifies a six-band multi-spectral stack—typically comprising the visible spectrum (**Red, Green, Blue**), Near-Infrared (**NIR**), and Short-Wave Infrared (**SWIR1, SWIR2**)—and projects it into a new coordinate space. The resulting orthogonal axes, or **Principal Components (PCs)**, are ordered by the amount of total variance they explain, isolating dominant spatial patterns and suppressing high-frequency sensor noise.
 
-| Class Name      | Application                                                                                     |
-| --------------- | ----------------------------------------------------------------------------------------------- |
-| `PCACalculator` | Computes 6 spatial principal components from 6 bands and displays them as maps with histograms. |
+## Comprehensive Mathematical Foundations
 
----
+### Spatial Data Matrix Construction
 
-### 2. `PCACalculator` – Principal Component Analysis
+Let each input band $b$ (where $b \in \{1, 2, \dots, 6\}$) represent a discrete 2D image matrix of height $H$ and width $W$. Each band matrix is flattened into a single row vector of length $N$, where $N = H \times W$. The combined multi-spectral data matrix $X$ is constructed by stacking these row vectors vertically:
 
-#### 2.1 Scientific Objective
+$$X = \begin{bmatrix} \text{band}_1 \\ \text{band}_2 \\ \vdots \\ \text{band}_6 \end{bmatrix} \in \mathbb{R}^{6 \times N}$$
 
-Transform the six original spectral bands (Red, Green, Blue, NIR, SWIR1, SWIR2) into six new **principal component** images that are uncorrelated with each other and are ordered by the amount of total variance they explain. The resulting components can be used for data compression, noise reduction, and the extraction of meaningful spatial structures.
+In this framework, the matrix contains $m = 6$ samples (the spectral bands) and $n = N$ features (the individual pixel coordinates).
 
-#### 2.2 Full Explanation of the PCA Mathematics
+### Broadcast Variable Centering
 
-PCA is a classic multivariate statistical technique. The implementation in this class applies PCA to a data matrix where **rows represent the six bands** and **columns represent the pixels** (i.e., each pixel is treated as a variable). This is a **transposed (spatial) PCA** – it identifies the dominant spatial patterns that account for the most variability across the set of input bands, rather than the more common spectral PCA that operates on pixel vectors.
+To eliminate global illumination offsets, the data must be centered before decomposition. The algorithm calculates the mean value $\bar{x}_j$ for each pixel variable $j$ across the 6 spectral samples:
 
-**Data matrix construction**
+$$\bar{x}_j = \frac{1}{m} \sum_{i=1}^{m} X_{ij}$$
 
-Let each band $b$ (with $b=1,…,6$) be a 2D image of height $H$ and width $W$, flattened into a row vector of length $N=H×W$. The full data matrix $X$ is then
+The centered data matrix $X_c$ is formed by subtracting this mean vector from each row of $X$:
 
-$$
-X =
-\begin{bmatrix}
-\text{band}_1 \\
-\text{band}_2 \\
-\vdots \\
-\text{band}_6
-\end{bmatrix} \in \mathbb{R}^{6 \times N}.
-$$
+$$X_c = X - \begin{bmatrix} \bar{x}_1 & \bar{x}_2 & \dots & \bar{x}_N \end{bmatrix}_{1 \times N}$$
 
-Thus, for this analysis, we have $m=6$ **samples** (the spectral bands) and $n=N$ **features** (the pixels).
+This centering operation is broadcast across all rows, centering each individual pixel variable around zero.
 
-**Centering the data**
+### Resolving the Dimensionality Boundary via SVD
 
-Prior to decomposition, PCA subtracts the mean of each feature (pixel) across the six samples. Let $\bar{x}_j = \frac{1}{m} \sum_{i=1}^{m} X_{ij}$​ be the mean of pixel $j$. The centered matrix $X_c$​ is
+The classical covariance matrix $C$ for the pixel features is defined as:
 
-$$X_c = X - \begin{bmatrix} \bar{x}_1 & \bar{x}_2 & \dots & \bar{x}_N \end{bmatrix}_{1 \times N} \quad (\text{broadcast over rows})$$
+$$C = \frac{1}{m - 1} X_c^T X_c \in \mathbb{R}^{N \times N}$$
 
-**Covariance matrix and its decomposition**
+Because a typical satellite scene contains millions of pixels ($N > 10^6$), building and decomposing this $N \times N$ matrix directly is computationally prohibitive. To bypass this bottleneck, `PCACalculator` uses **Singular Value Decomposition (SVD)** directly on the centered data matrix $X_c$:
 
-The covariance matrix of the features (pixels) is
+$$X_c = U \Sigma V^T$$
 
-$$C = \frac{1}{m-1} X_c^T X_c \quad \in \mathbb{R}^{N \times N}$$
+Where:
 
-Because $N$ (the number of pixels) is typically enormous, directly building and decomposing $C$ is computationally prohibitive. Instead, a **singular value decomposition (SVD)** of the centered matrix $X_c$​ is used :
+- $U \in \mathbb{R}^{6 \times 6}$ is an orthogonal matrix containing the left singular vectors, which represent the spectral loadings for each band.
+    
+- $\Sigma \in \mathbb{R}^{6 \times 6}$ is a diagonal matrix containing the sorted singular values ($\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_6 \ge 0$).
+    
+- $V \in \mathbb{R}^{N \times 6}$ contains the right singular vectors, which correspond to the spatial eigenvectors of the massive $C$ matrix.
 
-$$X_c = U \Sigma V^T,$$
+The eigenvalues $\lambda_k$ of the underlying covariance matrix are directly related to the singular values $\sigma_k$ by:
 
-where
+$$\lambda_k = \frac{\sigma_k^2}{m - 1}$$
 
-- $U \in \mathbb{R}^{6 \times 6}$ is orthogonal and contains the left singular vectors,
-- $\Sigma \in \mathbb{R}^{6 \times 6}$ is diagonal with singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_6 \geq 0$,
-- $V \in \mathbb{R}^{N \times 6}$ contains the right singular vectors.
+### Quantifying Explained Variance
 
-The principal components are the **right singular vectors** $V$; the rows of $V^T$ (or equivalently the columns of $V$) are the eigenvectors of the $N×N$ covariance matrix. The diagonal elements of $Σ$ are related to the eigenvalues $λ_k$​ of the covariance matrix by $\lambda_k = \frac{\sigma_k^2}{m-1}$​​.
+The $k$-th row of the transposed right singular matrix $V^T$ represents the $k$-th principal component vector, which has a length of $N$. The proportion of total spatial variance captured by this component is calculated directly from its singular value:
 
-**Principal components and explained variance**
+$$VE_k = \frac{\lambda_k}{\sum_{j=1}^{6} \lambda_j} = \frac{\sigma_k^2}{\sum_{j=1}^{6} \sigma_j^2}$$
 
-The $k-th$ principal component vector (as stored in `pca.components_`) is the $k-th$ row of $V^T$ (a vector of length $N$). Its corresponding eigenvalue $λ_k$​ measures the amount of variance captured by that component. The fraction of total variance explained by component $k$ is
+## Class Specification: `PCACalculator`
 
-$$VE_k = \frac{\lambda_k}{\sum_{j=1}^6 \lambda_j} = \frac{\sigma_k^2}{\sum_{j=1}^6 \sigma_j^2}$$
+### Scientific and Interpretation Profiles
 
-Because the singular values are sorted in descending order, PC1 explains the largest portion of variance, PC2 the second largest, and so on.
+When a principal component vector of length $N$ is reshaped back to its original dimensions $(H, W)$, it forms a spatial map known as an **eigenimage**. These components separate different types of information based on how variation is distributed across the scene:
 
-**Spatial interpretation**
+#### Principal Component 1 (PC1) — Albedo and Illumination Map
 
-When each principal component vector of length $N$ is reshaped back to $(H,W)$, we obtain a **spatial map** (an image). These images have the following properties :
+PC1 captures the most dominant spatial variation common to all six input bands, typically accounting for **more than 90% of the total scene variance**. Because land cover features generally reflect light with similar broad trends under uniform lighting, the PC1 image behaves like a panchromatic brightness map. It highlights overall surface albedo, topographic shading, and solar illumination while minimizing compositional differences.
 
-- **PC1** captures the most dominant spatial pattern that is common to (or varies most across) the six input bands. In practice, PC1 often resembles a panchromatic brightness image because all bands tend to increase or decrease together with overall illumination.
-- **PC2**, orthogonal to PC1, reveals the second most important pattern – often related to the contrast between vegetation (high NIR) and other surfaces.
-- **PC3–PC6** represent progressively finer‑scale or noise‑driven patterns. High‑order components frequently carry sensor noise and can be discarded for compression.
+#### Principal Component 2 (PC2) — Compositional and Vegetation Contrast
 
-**Transformation of original bands (not performed in this code)**
+PC2 highlights the second most dominant axis of variation, focusing on strong contrasts between different wavelengths. In landscapes with active vegetation, PC2 typically captures the sharp divergence between high near-infrared ($NIR$) reflectance and the strong visible light absorption of chlorophyll. This makes it an effective index for mapping biomass distribution and separating vegetative cover from urban surfaces or open water.
 
-If one wished to project the original band images onto the principal components (i.e., obtain the “scores”), one would compute
+#### Principal Components 3 to 6 (PC3–PC6) — Residuals and Sensor Noise
 
-$$T = X_c V \in \mathbb{R}^{6 \times 6}$$
+These higher-order components capture progressively smaller variations in the data. While PC3 often highlights subtle moisture or mineral variations across the short-wave infrared spectrum ($SWIR$), components PC4 through PC6 are typically dominated by high-frequency sensor noise, atmospheric striping, and random background variations. Consequently, these late-stage components can generally be discarded during data compression workflows without losing meaningful information.
 
-but that would give a 6×6 matrix of component strengths per band, not a pixel‑wise transformation. The present implementation focuses on the **eigenimages** themselves (the $V$ vectors), which directly show the spatial structures responsible for the variance.
+### Interface Architecture
 
-**The code’s specific steps**
+#### Constructor Method Signature (`__init__`)
 
-1. The six bands are flattened to row vectors; the 6×N matrix `images` is created.
-2. `PCA(n_components=6)` fits the model, storing `components_` (shape `(6, N)` – rows = principal components).
-3. `self._output` is set to `pca.components_[:6]`, which contains all six eigenimages.
-4. For visualisation, each component is reshaped to $(H,W)$ and displayed alongside its histogram.
+- **Input Arguments:**
+    
+    - `red_path` (`str` | `Path`): File path to the visible Red band raster layer.
+        
+    - `green_path` (`str` | `Path`): File path to the visible Green band raster layer.
+        
+    - `blue_path` (`str` | `Path`): File path to the visible Blue band raster layer.
+        
+    - `nir_path` (`str` | `Path`): File path to the Near-Infrared band raster layer.
+        
+    - `swir1_path` (`str` | `Path`): File path to the Short-Wave Infrared 1 band raster layer.
+        
+    - `swir2_path` (`str` | `Path`): File path to the Short-Wave Infrared 2 band raster layer.
+        
+    - `selectBand` (`Literal["red","green","blue","nir","swir1","swir2", None]`): Optional parameter. Selects a specific input band to map against the component outputs during specialized diagnostic profiling.
 
-**Input parameters (`__init__`) :**
+#### Processing Pipeline Lifecycle (`process()`)
 
-| Parameter    | Type                                                        | Description                                                |
-| ------------ | ----------------------------------------------------------- | ---------------------------------------------------------- |
-| `red_path`   | `Path`                                                      | Path to the Red band                                       |
-| `green_path` | `Path`                                                      | Path to the Green band                                     |
-| `blue_path`  | `Path`                                                      | Path to the Blue band                                      |
-| `nir_path`   | `Path`                                                      | Path to the NIR band                                       |
-| `swir1_path` | `Path`                                                      | Path to the SWIR1 band                                     |
-| `swir2_path` | `Path`                                                      | Path to the SWIR2 band                                     |
-| `selectBand` | `Literal["red","green","blue" ,"nir","swir1","swir2",None]` | Band for which a separate histogram is computed (optional) |
-|              |                                                             |                                                            |
+1. Ingests the six target spectral bands and flattens each 2D matrix into a continuous 1D array.
+    
+2. Combines the flattened arrays into a single unified matrix of shape `(6, N_pixels)`.
+    
+3. Passes this data matrix to `sklearn.decomposition.PCA(n_components=6)`. The model centers the variables and executes an optimized SVD.
+    
+4. Extracts the six spatial eigenvectors from `pca.components_` and stores this `(6, N_pixels)` array in `self._output`.
 
-**Processing steps :**
+#### Visualization Lifecycle (`_export_file`)
 
-- Each band image is flattened into a 1D array.
-- The six flattened arrays form a `(6, N_pixels)` matrix, which is passed to scikit‑learn’s PCA with `n_components=6`.
-- The principal component vectors (each of length `N_pixels`) are stored in `self._output`.
+Generates a structured $6 \times 2$ grid layout to support visual data analysis:
 
-**Visual output (`_export_file`) :**  
-A composite 6×2 grid is generated :
+- **Left Column Panels:** Displays the six individual principal component vectors, reshaped back to the original image dimensions `(Height, Width)`.
+    
+- **Right Column Panels:** Plots the corresponding frequency histograms for each component, helping analysts inspect the distribution of variance across the different axes.
 
-- **Left column :** each principal component reshaped to the original image shape.
-- **Right column :** the histogram of that component.  
-   The components are labeled PC1 to PC6.
+#### Return Value
 
-**Return value :**  
-A NumPy array of shape `(6, N_pixels)`, where each row is one principal component vector.
+Returns a floating-point `numpy.ndarray` of shape `(6, N_pixels)`. Each row in this matrix contains the continuous spatial weights for one of the six principal components.
 
-**Usage example :**
+### Operational Implementation
 
-```python
+```Python
+from pathlib import Path
 from fezrs.tools.pca import PCACalculator
 
-calc = PCACalculator(
-    red_path="B4.tif",
-    green_path="B3.tif",
-    blue_path="B2.tif",
-    nir_path="B5.tif",
-    swir1_path="B6.tif",
-    swir2_path="B7.tif"
+# Initialize the spatial PCA transformation engine
+pca_transformer = PCACalculator(
+    red_path=Path("./landsat/LC08_B04_Red.tif"),
+    green_path=Path("./landsat/LC08_B03_Green.tif"),
+    blue_path=Path("./landsat/LC08_B02_Blue.tif"),
+    nir_path=Path("./landsat/LC08_B05_NIR.tif"),
+    swir1_path=Path("./landsat/LC08_B06_SWIR1.tif"),
+    swir2_path=Path("./landsat/LC08_B07_SWIR2.tif")
 )
 
-# Save the 6‑panel PDF with components and histograms
-calc.execute(output_path="./pca_results/", title="PCA of 6 Landsat Bands", dpi=500)
-
-# For a histogram of a single component (e.g., the one most related to SWIR2)
-calc = PCACalculator(..., selectBand="swir2")
-calc.histogram_export(output_path="./", title="PC Component analogous to SWIR2")
+# Run the SVD engine, construct diagnostic histograms, and save the 6-panel visualization layout
+pca_transformer.execute(
+    output_path="./exports/pca_analytics/",
+    title="Spatial PCA Matrix Decomposition",
+    dpi=500
+)
 ```
 
----
+## Analytical Performance Reference
 
-### 3. Technical Notes and Interpretation of Results
+The table below outlines the general characteristics and typical interpretation profiles of the resulting principal components:
 
-- **Importance of PC1 :** Often accounts for more than 90 % of the total variance. The PC1 image typically resembles a high‑resolution panchromatic image because brightness variations dominate the dataset.
-- **PC2 and PC3 :** These components contain complementary spectral information that can distinguish between vegetation, soil, and water. A colour composite using PC1, PC2, and PC3 serves as an effective alternative to a natural‑colour image for visual analysis.
-- **PC4–PC6 :** Primarily consist of sensor noise or very subtle variations. They are frequently omitted in data compression workflows.
-- **Memory considerations :** The current implementation loads all pixel data into memory at once and performs SVD on a `(6, N)` matrix, which is memory‑efficient because N is large but m=6 is tiny. However, if the image is extremely large, the flattening step may still consume significant RAM.
-- **Data scaling :** PCA is sensitive to the scale of the input variables. In this transposed approach, the variables are pixels, and their values are the raw or normalised reflectances. If the bands are not normalised beforehand, bands with larger dynamic ranges can dominate the first components. The code uses `get_images_collection()`, which may return raw digital numbers; applying a consistent normalisation before PCA is advisable.
-- **Repeated computation in `histogram_export` :** Calling this method runs `process()` again, which recomputes the entire PCA. For large images this doubles the computation time; caching the result or computing the histogram directly from `self._output` would be more efficient.
-
----
-
-### 4. Suggestions for Development
-
-- **Data standardisation :** Add a `standardize=True` parameter to subtract the mean and divide by the standard deviation of each band (or each pixel in this transposed case) before PCA.
-- **Save PCA model :** Allow exporting the trained PCA object (the eigenvectors) for applying the same transformation to other images.
-- **GeoTIFF output :** Currently only PNG is saved. Adding the ability to store each principal component as a separate GeoTIFF file with georeferencing would facilitate further geospatial analysis.
-- **Adjustable number of components :** Introduce an `n_components` parameter to let the user extract fewer than six components, reducing output size.
+|**Component**|**Target Variance Share**|**Spatial Contrast Profile**|**Primary Analytical Applications**|
+|---|---|---|---|
+|**PC1**|Typical $\ge 90\%$|High structural detail; behaves like a panchromatic brightness map.|Topographic mapping, shadow analysis, and baseline albedo feature extraction.|
+|**PC2**|Typical $5\% - 8\%$|High contrast between visible light absorption and near-infrared ($NIR$) plateau.|Biomass delineation, vegetation health mapping, and land-cover classification.|
+|**PC3**|Typical $1\% - 3\%$|Captures variations across infrared bands ($SWIR1 / SWIR2$).|Soil moisture profiling, surface water mapping, and mineral identification.|
+|**PC4 – PC6**|Distributive $\le 1\%$|Low structural coherence; dominated by random high-frequency sensor patterns.|Noise filtering, data compression filtering, and system calibration diagnostics.|
