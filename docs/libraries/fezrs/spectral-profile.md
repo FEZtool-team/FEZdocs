@@ -40,11 +40,11 @@ This module unifies separate spectral bands—typically including the visible sp
 
 The calculator filters the incoming files to extract valid, non-null bands and stores them in an ordered layout:
 
-$$\text{image\ columns} = \{ \text{band\_name} : I_{\text{band}}(x, y) \mid I_{\text{band}} \neq \text{None} \}$$
+$$\text{image\ columns} = \{ \text{band\ name} : I_{\text{band}}(x, y) \mid I_{\text{band}} \neq \text{None} \}$$
 
 This collection is converted into a structurally indexed array where the dictionary keys determine the $X$-axis tracking names:
 
-$$\text{image\ columns\_list\_of\_bands} = [b_1, b_2, \dots, b_m] \quad \text{where } m \le 6$$
+$$\text{image\ columns\ list\ of\ bands} = [b_1, b_2, \dots, b_m] \quad \text{where } m \le 6$$
 
 ### Global Spatial Averaging
 
