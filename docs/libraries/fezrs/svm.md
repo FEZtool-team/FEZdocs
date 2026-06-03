@@ -12,7 +12,16 @@ Using an interactive OpenCV window, analysts select training coordinates directl
 
 Each independent image pixel is treated as a distinct statistical sample in a six-dimensional spectral space. The feature vector $\mathbf{x}$ for a given coordinate is formed by stacking its normalized reflectance values from the six available bands:
 
-$$\mathbf{x} = \begin{bmatrix} x_{\text{Red}} & x_{\text{Green}} & x_{\text{Blue}} & x_{\text{NIR}} & x_{\text{SWIR1}} & x_{\text{SWIR2}} \end{bmatrix}^T \in \mathbb{R}^6$$
+$$
+\mathcal{D}
+=
+\left\{
+(\mathbf{x}_i, y_i)
+\mid
+\mathbf{x}_i \in \mathbb{R}^6,\;
+y_i \in \{1,2,\dots,K\}
+\right\}_{i=1}^{N_{\text{train}}}
+$$
 
 The complete training array gathered via the user interface consists of $N_{\text{train}}$ examples:
 
