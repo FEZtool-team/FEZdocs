@@ -97,7 +97,8 @@ export default defineConfig({
         ],
       },
 
-      { text: "Licenses", link: "/licenses" },
+      { text: "Licensing", link: "/licensing" },
+      { text: "FEZteam", link: "/team" },
       { text: "Stay in Touch", link: "/contact" },
     ],
 

@@ -1,25 +1,10 @@
 # Installation
 
-You can install FEZrs using your preferred Python package manager.
+Install FEZrs with the Python package manager that fits your environment.
 
-## Using pip (PyPI)
+<PackageManagerTabs package-name="fezrs" />
 
-```bash
-pip install fezrs
-```
+> [!TIP]
+> `pip` is the quickest option for most Python environments. Use `conda` or `mamba` when you manage scientific dependencies through Anaconda-compatible environments.
 
-## Using conda (Anaconda)
-
-```bash
-conda install -c FEZtool fezrs
-```
-
-## Using mamba
-
-```bash
-mamba install FEZtool::fezrs
-```
-
-> [!NOTE]
-> The `mamba` command requires Mamba to be installed.
-> If Mamba is not available on your system, use the `conda` command instead.
+<PyPIReleases package-name="fezrs" :page-size="8" />

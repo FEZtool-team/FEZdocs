@@ -49,3 +49,77 @@
   font-weight: 700;
   letter-spacing: 0.3px;
 }
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.team-card {
+  padding: 20px;
+  border: 1px solid var(--vp-c-border);
+  border-radius: 8px;
+  background: var(--vp-c-bg);
+}
+
+.team-card h3 {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.team-role {
+  margin: 6px 0 18px;
+  color: var(--vp-c-text-2);
+  font-weight: 600;
+}
+
+.team-card dl {
+  margin: 0;
+}
+
+.team-card dt {
+  margin-top: 14px;
+  color: var(--vp-c-text-1);
+  font-weight: 700;
+}
+
+.team-card dd {
+  margin: 4px 0 0;
+  color: var(--vp-c-text-2);
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.contact-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 190px;
+  padding: 20px;
+  border: 1px solid var(--vp-c-border);
+  border-radius: 8px;
+  background: var(--vp-c-bg);
+}
+
+.contact-card h3 {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.contact-card p {
+  flex: 1;
+  margin: 12px 0 18px;
+  color: var(--vp-c-text-2);
+}
+
+.contact-card a {
+  font-weight: 700;
+}
