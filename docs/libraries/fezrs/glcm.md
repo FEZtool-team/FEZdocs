@@ -12,6 +12,8 @@ This module provides the ability to compute **Haralick texture features** based 
 
 ---
 
+<span id="glcm-calculator"></span>
+
 ### 2. `GLCMCalculator` – GLCM Texture Analysis
 
 #### 2.1 Scientific Objective

@@ -12,6 +12,8 @@ This module provides the ability to calculate and plot the **average spectral si
 
 ---
 
+<span id="spectral-profile-calculator"></span>
+
 ### 2. `SpectralProfileCalculator` – Spectral Profile
 
 #### 2.1 Scientific Objective

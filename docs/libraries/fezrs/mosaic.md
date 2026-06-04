@@ -19,6 +19,8 @@ from .mosaic_calculator import MosaicCalculator
 	
 ---
 
+<span id="mosaic-calculator"></span>
+
 ### 2. `MosaicCalculator` – Image Mosaicking
 
 #### 2.1 Scientific Objective

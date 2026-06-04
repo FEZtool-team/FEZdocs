@@ -26,6 +26,9 @@ All classes in this module inherit from `BaseTool` and `HistogramExportMixin` (f
 
 ### 2. Detailed Documentation of Classes
 
+<span id="original-calculator"></span>
+<span id="original-rgb-calculator"></span>
+
 #### 2.1. `OriginalCalculator` and `OriginalRGBCalculator` – Raw Image Extraction
 
 **Purpose**  
@@ -50,6 +53,8 @@ calc = OriginalCalculator(nir_path="NIR.tif").execute("./output/")
 
 ---
 
+<span id="float-calculator"></span>
+
 #### 2.2. `FloatCalculator` – Convert to Float
 
 **Purpose**  
@@ -66,6 +71,9 @@ where $I_{\text{max}} = 2^{b} - 1$. This is performed by `skimage.img_as_float`.
 **Output :** float array
 
 ---
+
+<span id="equalize-calculator"></span>
+<span id="equalize-rgb-calculator"></span>
 
 #### 2.3. `EqualizeCalculator` and `EqualizeRGBCalculator` – Histogram Equalisation
 
@@ -103,6 +111,9 @@ calc = EqualizeCalculator(nir_path="NIR.tif").execute("./", title="Histogram Equ
 ```
 
 ---
+
+<span id="adaptive-calculator"></span>
+<span id="adaptive-rgb-calculator"></span>
 
 #### 2.4. `AdaptiveCalculator` and `AdaptiveRGBCalculator` – Adaptive Equalisation (CLAHE)
 
@@ -161,6 +172,9 @@ calc.execute("./", title="CLAHE Enhanced")
 
 ---
 
+<span id="gamma-calculator"></span>
+<span id="gamma-rgb-calculator"></span>
+
 #### 2.5. `GammaCalculator` and `GammaRGBCalculator` – Gamma Correction
 
 **Scientific objective**  
@@ -210,6 +224,8 @@ calc.execute("./", title="Gamma Corrected")
 
 ---
 
+<span id="log-adjust-calculator"></span>
+
 #### 2.6. `LogAdjustCalculator` – Logarithmic Adjustment
 
 **Scientific objective**  
@@ -244,6 +260,8 @@ calc.execute("./", title="Log Adjusted")
 ```
 
 ---
+
+<span id="sigmoid-adjust-calculator"></span>
 
 #### 2.7. `SigmoidAdjustCalculator` – Sigmoid Adjustment
 

@@ -21,6 +21,8 @@ All classes inherit from `BaseTool` and utilise the `files_handler` for band loa
 
 ### 2. Detailed Documentation of Each Class
 
+<span id="afvi-calculator"></span>
+
 #### 2.1. `AFVICalculator` – Advanced Forest Vegetation Index
 
 **Scientific objective**  
@@ -53,6 +55,8 @@ The output range in practice lies roughly between 0 and 1 for dense vegetation, 
 **Range :** ~0 to 1 (higher = denser vegetation)
 
 ---
+
+<span id="bi-calculator"></span>
 
 #### 2.2. `BICalculator` – Bare Soil Index
 
@@ -89,6 +93,8 @@ The normalisation by the sum $\text{NIR}+\text{Green}+\text{Red}$ in the denomin
 **Range :** −1 to +1 (positive = vegetation, negative = bare soil/urban in this implementation)
 
 ---
+
+<span id="ndvi-calculator"></span>
 
 #### 2.3. `NDVICalculator` – Normalised Difference Vegetation Index
 
@@ -127,6 +133,8 @@ calc.execute("./", title="NDVI", colormap="RdYlGn", show_colorbar=True)
 
 ---
 
+<span id="ndwi-calculator"></span>
+
 #### 2.4. `NDWICalculator` – Normalised Difference Water Index
 
 **Scientific objective**  
@@ -156,6 +164,8 @@ This index effectively separates water from land. It is also sensitive to the wa
 
 ---
 
+<span id="savi-calculator"></span>
+
 #### 2.5. `SAVICalculator` – Soil Adjusted Vegetation Index
 
 **Scientific objective**  
@@ -184,6 +194,8 @@ $$SAVI =  \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red} + 0.5} \times 1
 | `red_path` | `Path` | Red band file |
 
 ---
+
+<span id="ui-calculator"></span>
 
 #### 2.6. `UICalculator` – Urban Index
 

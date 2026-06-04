@@ -12,6 +12,8 @@ This module provides the **Principal Component Analysis (PCA)** algorithm for di
 
 ---
 
+<span id="pca-calculator"></span>
+
 ### 2. `PCACalculator` – Principal Component Analysis
 
 #### 2.1 Scientific Objective

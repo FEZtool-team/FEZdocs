@@ -28,6 +28,8 @@ The choice of kernel coefficients determines the filter’s behaviour – blurri
 
 ### 2. Detailed Documentation for Each Class
 
+<span id="guassian-calculator"></span>
+
 #### 2.1. `GuassianCalculator` – Gaussian Filter
 
 **Scientific objective**  
@@ -72,6 +74,8 @@ calc.execute(output_path="./output/", title="Gaussian Blur", dpi=300)
 ```
 
 ---
+
+<span id="laplacian-calculator"></span>
 
 #### 2.2. `LaplacianCalculator` – Laplacian Filter
 
@@ -136,6 +140,8 @@ calc.execute(output_path="./output/", title="Laplacian Edge Detection")
 
 ---
 
+<span id="mean-calculator"></span>
+
 #### 2.3. `MeanCalculator` – Mean (Average) Filter
 
 **Scientific objective**  
@@ -185,6 +191,8 @@ calc.execute(output_path="./output/", title="Mean/Average Filter")
 
 ---
 
+<span id="median-calculator"></span>
+
 #### 2.4. `MedianCalculator` – Median Filter
 
 **Scientific objective**  
@@ -232,6 +240,8 @@ calc.execute(output_path="./output/", title="Median Filter Denoising")
 ```
 
 ---
+
+<span id="sobel-calculator"></span>
 
 #### 2.5. `SobelCalculator` – Sobel Filter
 

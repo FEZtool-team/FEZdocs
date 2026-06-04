@@ -15,6 +15,8 @@ This module provides the ability to convert satellite band composites into the *
 
 ### 2. Detailed Documentation for Each Class
 
+<span id="hsv-calculator"></span>
+
 #### 2.1. `HSVCalculator` – Standard HSV Space for Vegetation Analysis
 
 **Scientific objective**  
@@ -120,6 +122,8 @@ calc.execute(
 ```
 
 ---
+
+<span id="irhsv-calculator"></span>
 
 #### 2.2. `IRHSVCalculator` – Infrared HSV Space (IR‑HSV)
 
