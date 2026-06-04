@@ -26,6 +26,10 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Agents
+AGENTS.md
+.qodo
+
 # Environment variables
 .env
 .env.*
