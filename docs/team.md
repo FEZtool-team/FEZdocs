@@ -20,7 +20,7 @@ FEZdocs is the central documentation hub for the ecosystem, while FEZrs is one o
       <dt>Focus</dt>
       <dd>FEZtool ecosystem, FEZdocs, FEZrs, geospatial tooling</dd>
       <dt>Projects</dt>
-      <dd><a href="https://github.com/FEZtool-team/FEZdocs" target="_blank" rel="noopener">FEZdocs</a> · <a href="https://github.com/FEZtool-team/FEZrs" target="_blank" rel="noopener">FEZrs</a></dd>
+      <dd><a href="https://github.com/FEZtool-team/FEZdocs" target="_blank" rel="noopener">FEZdocs</a> / <a href="https://github.com/FEZtool-team/FEZrs" target="_blank" rel="noopener">FEZrs</a></dd>
       <dt>License</dt>
       <dd>Apache License 2.0</dd>
       <dt>Contact</dt>
@@ -36,15 +36,24 @@ FEZdocs is the central documentation hub for the ecosystem, while FEZrs is one o
 The FEZteam contributors guide the direction of FEZtool libraries, documentation, examples, and research-oriented workflows.
 
 <div class="team-grid">
-  <article class="team-card">
+  <article class="team-card team-card--saturn">
     <h3>Mahdi Nedaee</h3>
     <p class="team-role">FEZtool Software Engineer</p>
     <dl>
       <dt>Focus</dt>
       <dd>Develop packages</dd>
       <dt>Project areas</dt>
-      <dd>FEZrs · FEZdocs</dd>
+      <dd>FEZrs / FEZdocs</dd>
+      <dt>Known for</dt>
+      <dd>Working across multiple domains, maintaining project standards, and returning with solutions.</dd>
+      <dt>Team nickname</dt>
+      <dd>The French Wrench</dd>
     </dl>
+    <div class="team-actions">
+      <a class="team-action" href="https://github.com/mhdned" target="_blank" rel="noopener">
+        GitHub Profile
+      </a>
+    </div>
   </article>
 </div>
 

@@ -58,10 +58,17 @@
 }
 
 .team-card {
+  position: relative;
+  overflow: hidden;
   padding: 20px;
   border: 1px solid var(--vp-c-border);
   border-radius: 8px;
   background: var(--vp-c-bg);
+}
+
+.team-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .team-card h3 {
@@ -89,6 +96,52 @@
 .team-card dd {
   margin: 4px 0 0;
   color: var(--vp-c-text-2);
+}
+
+.team-card--saturn::before {
+  position: absolute;
+  right: -34px;
+  bottom: -26px;
+  z-index: 0;
+  width: 180px;
+  height: 180px;
+  background-image: url("data:image/svg+xml,%3Csvg width='180' height='180' viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23343a40' stroke-width='7' stroke-linecap='round'%3E%3Cellipse cx='90' cy='98' rx='70' ry='24' transform='rotate(-18 90 98)'/%3E%3Ccircle cx='90' cy='90' r='38' fill='%23343a40' fill-opacity='.35' stroke='none'/%3E%3Cpath d='M55 104c21 14 67 14 90-4' stroke-width='5'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  content: "";
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.dark .team-card--saturn::before {
+  filter: invert(1);
+  opacity: 0.05;
+}
+
+.team-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.team-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--vp-c-border);
+  border-radius: 6px;
+  color: var(--vp-c-text-1);
+  background: var(--vp-c-bg-soft);
+  font-size: 0.92em;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.team-action:hover {
+  color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-3);
 }
 
 .contact-grid {
