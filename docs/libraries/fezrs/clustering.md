@@ -12,6 +12,8 @@ This module provides **clustering algorithms** for analysing satellite images. I
 
 ---
 
+<span id="kmeans-calculator"></span>
+
 ### 2. `KMeansCalculator` – K‑Means Clustering
 
 #### 2.1 Scientific Objective

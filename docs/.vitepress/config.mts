@@ -97,7 +97,8 @@ export default defineConfig({
         ],
       },
 
-      { text: "Licenses", link: "/licenses" },
+      { text: "Licensing", link: "/licensing" },
+      { text: "FEZteam", link: "/team" },
       { text: "Stay in Touch", link: "/contact" },
     ],
 
@@ -109,6 +110,14 @@ export default defineConfig({
             {
               text: "Overview",
               link: "/libraries/fezrs/",
+            },
+            {
+              text: "Contributors",
+              link: "/libraries/fezrs/#contributors",
+            },
+            {
+              text: "Contributing",
+              link: "/libraries/fezrs/#contributing",
             },
             {
               text: "Installation",
@@ -176,7 +185,7 @@ export default defineConfig({
     socialLinks: [
       {
         icon: "github",
-        link: "https://github.com/mhdned",
+        link: "https://github.com/FEZtool-team/",
       },
     ],
 

@@ -18,6 +18,8 @@ This module implements the **Support Vector Machine (SVM)** algorithm for superv
 
  ---
 
+<span id="svm-calculator"></span>
+
 ### 2. `SVMCalculator` – Supervised SVM Classification
 
 #### 2.1 Scientific Objective

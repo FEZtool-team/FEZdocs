@@ -24,6 +24,8 @@ All classes in this module inherit from `fezrs.base.BaseTool` and use the `self.
 
 ### 3. Detailed Documentation for Each Class
 
+<span id="burn-calculator"></span>
+
 #### 3.1. `BurnCalculator` – Burn Severity Calculation (dNBR)
 
 **Scientific objective**  
@@ -105,6 +107,8 @@ calc.execute(output_path="./results/", title="Burn Severity Mask", colormap="Red
 
 ---
 
+<span id="indices-calculator"></span>
+
 #### 3.2. `IndicesCalculator` – Compute NBR for a Single Date
 
 **Scientific objective**  
@@ -143,6 +147,8 @@ calc.execute("./output", title="NBR After Event")
 ```
 
 ---
+
+<span id="magdir-calculator"></span>
 
 #### 3.3. `MagDirCalculator` – Change Vector Magnitude and Direction (CVA)
 
@@ -207,6 +213,8 @@ calc.execute("./output", title="Change Magnitude", colormap="viridis")
 
 ---
 
+<span id="subdiv-calculator"></span>
+
 #### 3.4. `SubDivCalculator` – Simple Band Subtraction or Division
 
 **Scientific objective**  
@@ -245,6 +253,8 @@ calc.execute("./output", title="NIR Difference (Before - After)")
 ```
 
 ---
+
+<span id="time-calculator"></span>
 
 #### 3.5. `TimeCalculator` – Raw Image Extraction
 

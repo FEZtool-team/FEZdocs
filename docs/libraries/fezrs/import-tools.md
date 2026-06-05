@@ -15,6 +15,8 @@ This module is responsible for **extracting and preparing specific bands** from 
 
 ### 2. Detailed Documentation of Each Class
 
+<span id="geoeye-calculator"></span>
+
 #### 2.1. `Geoeye_Calculator` – Extract a Band from a Multi‑band Image
 
 **Purpose**  
@@ -60,6 +62,8 @@ calc.execute(output_path="./output/", title="Extracted Band 4 (NIR)", colormap="
 ```
 
 ---
+<span id="landsat8-calculator"></span>
+
 #### 2.2. `Landsat8_Calculator` – Create Landsat 8 Colour Composites
 
 **Purpose**  
