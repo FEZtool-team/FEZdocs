@@ -112,6 +112,14 @@ export default defineConfig({
               link: "/libraries/fezrs/",
             },
             {
+              text: "Contributors",
+              link: "/libraries/fezrs/#contributors",
+            },
+            {
+              text: "Contributing",
+              link: "/libraries/fezrs/#contributing",
+            },
+            {
               text: "Installation",
               link: "/libraries/fezrs/installation",
             },
@@ -177,7 +185,7 @@ export default defineConfig({
     socialLinks: [
       {
         icon: "github",
-        link: "https://github.com/mhdned",
+        link: "https://github.com/FEZtool-team/",
       },
     ],
 

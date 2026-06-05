@@ -23,6 +23,99 @@ Each module is accessible directly and can be plugged into custom workflows or p
 
 ---
 
+## Contributors
+
+FEZrs is built in public, and every issue, fix, idea, example, and documentation improvement helps the package become more useful for remote sensing and geospatial work.
+
+<div class="contributors-strip" aria-label="FEZrs contributors">
+  <a class="contributor-chip" href="https://github.com/mhdned" target="_blank" rel="noopener" aria-label="mhdned on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/53142654?v=4" alt="mhdned" loading="lazy">
+    <span>mhdned</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/aradfarahani" target="_blank" rel="noopener" aria-label="aradfarahani on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/90475349?v=4" alt="aradfarahani" loading="lazy">
+    <span>aradfarahani</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/mkiani12" target="_blank" rel="noopener" aria-label="mkiani12 on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/60611017?v=4" alt="mkiani12" loading="lazy">
+    <span>mkiani12</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/faribakhosravani" target="_blank" rel="noopener" aria-label="faribakhosravani on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/261212779?v=4" alt="faribakhosravani" loading="lazy">
+    <span>faribakhosravani</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/jpyNicolas" target="_blank" rel="noopener" aria-label="jpyNicolas on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/106113390?v=4" alt="jpyNicolas" loading="lazy">
+    <span>jpyNicolas</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/arasbadrooj" target="_blank" rel="noopener" aria-label="arasbadrooj on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/199924148?v=4" alt="arasbadrooj" loading="lazy">
+    <span>arasbadrooj</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/erfan82karim" target="_blank" rel="noopener" aria-label="erfan82karim on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/123228810?v=4" alt="erfan82karim" loading="lazy">
+    <span>erfan82karim</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/Fatemehnajafi97" target="_blank" rel="noopener" aria-label="Fatemehnajafi97 on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/182514440?v=4" alt="Fatemehnajafi97" loading="lazy">
+    <span>Fatemehnajafi97</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/mahlazafar" target="_blank" rel="noopener" aria-label="mahlazafar on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/188618676?v=4" alt="mahlazafar" loading="lazy">
+    <span>mahlazafar</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/NimaRaeisi" target="_blank" rel="noopener" aria-label="NimaRaeisi on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/154989369?v=4" alt="NimaRaeisi" loading="lazy">
+    <span>NimaRaeisi</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/elmielmo" target="_blank" rel="noopener" aria-label="elmielmo on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/87499398?v=4" alt="elmielmo" loading="lazy">
+    <span>elmielmo</span>
+  </a>
+  <a class="contributor-chip" href="https://github.com/yooneskiani" target="_blank" rel="noopener" aria-label="yooneskiani on GitHub">
+    <img src="https://avatars.githubusercontent.com/u/178902271?v=4" alt="yooneskiani" loading="lazy">
+    <span>yooneskiani</span>
+  </a>
+</div>
+
+<p class="contributors-note">
+  Contributor avatars are linked to GitHub profiles and based on the FEZrs public contributor list.
+  <a href="https://github.com/FEZtool-team/FEZrs/graphs/contributors" target="_blank" rel="noopener">View the live contributors graph</a>.
+</p>
+
+---
+
+## Contributing
+
+<div class="contribution-policy">
+  <article>
+    <h3>Good first contributions</h3>
+    <p>Bug reports, clearer examples, documentation fixes, tests, and small remote-sensing workflow improvements are welcome.</p>
+  </article>
+  <article>
+    <h3>Before opening a pull request</h3>
+    <p>Open or check an issue first for larger changes, keep the branch focused, and explain the use case so maintainers can review it quickly.</p>
+  </article>
+  <article>
+    <h3>Quality bar</h3>
+    <p>Include tests or examples when behavior changes, keep public APIs documented, and avoid unrelated formatting or refactors in the same pull request.</p>
+  </article>
+  <article>
+    <h3>Community policy</h3>
+    <p>Be respectful, practical, and research-minded. FEZrs follows the repository code of conduct for all project spaces.</p>
+  </article>
+</div>
+
+Useful contribution links:
+
+- [FEZrs repository](https://github.com/FEZtool-team/FEZrs)
+- [Open FEZrs issues](https://github.com/FEZtool-team/FEZrs/issues)
+- [FEZrs pull requests](https://github.com/FEZtool-team/FEZrs/pulls)
+- [FEZrs tests](https://github.com/FEZtool-team/FEZrs/tree/main/tests)
+- [FEZrs code of conduct](https://github.com/FEZtool-team/FEZrs/blob/main/CODE_OF_CONDUCT.md)
+
+---
+
 ## Module Table
 
 | Calculator | Input Bands | Parameters | Description | Tool Category |
