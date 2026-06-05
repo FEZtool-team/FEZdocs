@@ -29,6 +29,7 @@ Thumbs.db
 # Agents
 AGENTS.md
 .qodo
+.codex
 
 # Environment variables
 .env
