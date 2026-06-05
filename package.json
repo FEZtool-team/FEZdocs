@@ -17,7 +17,7 @@
     "docs:serve": "vitepress serve docs"
   },
   "dependencies": {
-    "@iktakahiro/markdown-it-katex": "^4.0.1",
+    "@iktakahiro/markdown-it-katex": "^4.0.0",
     "katex": "^0.17.0",
     "markdown-it-footnote": "^4.0.0",
     "markdown-it-mathjax3": "^4.3.2",
