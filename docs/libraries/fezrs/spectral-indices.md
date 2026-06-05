@@ -8,7 +8,7 @@ This module provides a set of **spectral indices** for extracting quantitative i
 
 |Class Name|Index|Main Application|
 |---|---|---|
-|`AFVICalculator`|AFVI|Dense forest and vegetation monitoring|
+|`AFRICalculator`|AFRI|Dense forest and vegetation monitoring|
 |`BICalculator`|BI|Bare soil and non‑vegetated area identification|
 |`NDVICalculator`|NDVI|Vegetation health and density|
 |`NDWICalculator`|NDWI|Water body and moisture detection|
@@ -21,18 +21,18 @@ All classes inherit from `BaseTool` and utilise the `files_handler` for band loa
 
 ### 2. Detailed Documentation of Each Class
 
-<span id="afvi-calculator"></span>
+<span id="afri-calculator"></span>
 
-#### 2.1. `AFVICalculator` – Advanced Forest Vegetation Index
+#### 2.1. `AFRICalculator` – AFRI
 
 **Scientific objective**  
-Discriminate dense vegetation (particularly forests) while reducing sensitivity to variations in illumination, shadow, and background soil. The AFVI is designed to maximise the contrast between photosynthetically active vegetation and other land covers.
+Discriminate dense vegetation (particularly forests) while reducing sensitivity to variations in illumination, shadow, and background soil. The AFRI is designed to maximise the contrast between photosynthetically active vegetation and other land covers.
 
 **Full Explanation of the Formula**
 
-The AFVI implemented in the code is :
+The AFRI implemented in the code is :
 
-$$AFVI = (NIR - 0.66) \times \left( \frac{SWIR1}{NIR + 0.66 \times SWIR1} \right)$$
+$$AFRI = (NIR - 0.66) \times \left( \frac{SWIR1}{NIR + 0.66 \times SWIR1} \right)$$
 
 This formula can be broken down into two interacting components :
 
@@ -40,7 +40,7 @@ This formula can be broken down into two interacting components :
     In the normalised band space $[0,1]$, healthy green vegetation typically exhibits high NIR reflectance (well above 0.5) due to strong scattering by the leaf mesophyll, while SWIR1 reflectance is lower because of water absorption. The constant 0.66 acts as a threshold; pixels with $NIR<0.66$ (e.g., water, bare soil, urban surfaces) produce a negative or very small first factor, suppressing the index. Pixels with $NIR>0.66$ (dense vegetation) yield a positive contribution. The value 0.66 is an empirically derived reference level calibrated for typical forest reflectance ranges in NIR.
     
 2. **SWIR1 ratio term $\frac{SWIR1}{NIR + 0.66 \times SWIR1}$ :**  
-    This is a non‑linear ratio that modulates the NIR offset. For healthy vegetation, SWIR1 is considerably lower than NIR, so the ratio becomes small (approaching $\frac{low}{high + 0.66 \times low}$ $≈\text{low}$ value). The product of a positive $(NIR−0.66)$ and a small ratio still yields a moderate positive value. For non‑vegetated surfaces where SWIR1 is high and NIR is low, the ratio becomes larger while $(NIR−0.66)$ is negative, producing a strong negative or near‑zero output. Thus the AFVI effectively suppresses confusing signals from bright soils, water, and shadows.
+    This is a non‑linear ratio that modulates the NIR offset. For healthy vegetation, SWIR1 is considerably lower than NIR, so the ratio becomes small (approaching $\frac{low}{high + 0.66 \times low}$ $≈\text{low}$ value). The product of a positive $(NIR−0.66)$ and a small ratio still yields a moderate positive value. For non‑vegetated surfaces where SWIR1 is high and NIR is low, the ratio becomes larger while $(NIR−0.66)$ is negative, producing a strong negative or near‑zero output. Thus the AFRI effectively suppresses confusing signals from bright soils, water, and shadows.
 
 
 The output range in practice lies roughly between 0 and 1 for dense vegetation, with higher values indicating greater canopy density. Because the bands are normalised to $[0,1]$, the index is well‑suited for multi‑temporal comparisons without additional calibration.
@@ -228,7 +228,7 @@ This index helps to separate built‑up regions from surrounding vegetated areas
 
 | Index | Required Bands  | Application              | Simplified Formula (with constants)                    |
 | ----- | --------------- | ------------------------ | ------------------------------------------------------ |
-| AFVI  | NIR, SWIR1      | Dense forest vegetation  | $(NIR - 0.66) \times SWIR1 / (NIR + 0.66 \cdot SWIR1)$ |
+| AFRI  | NIR, SWIR1      | Dense forest vegetation  | $(NIR - 0.66) \times SWIR1 / (NIR + 0.66 \cdot SWIR1)$ |
 | BI    | NIR, Red, Green | Bare soil / urban        | $((NIR - Green) - Red) / ((NIR + Green) + Red)$        |
 | NDVI  | NIR, Red        | General vegetation       | $(NIR - Red) / (NIR + Red)$                            |
 | NDWI  | Green, NIR      | Water & moisture         | $(Green - NIR) / (Green + NIR)$                        |
@@ -245,7 +245,7 @@ This index helps to separate built‑up regions from surrounding vegetated areas
     
 3. **Recommended colormaps :**
     
-    - NDVI, SAVI, AFVI → `'RdYlGn'` or `'YlGn'`
+    - NDVI, SAVI, AFRI → `'RdYlGn'` or `'YlGn'`
         
     - NDWI → `'Blues'`
         

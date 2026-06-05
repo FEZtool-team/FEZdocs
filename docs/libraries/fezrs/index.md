@@ -56,7 +56,7 @@ Each module is accessible directly and can be plugged into custom workflows or p
 | [Landsat8_Calculator](./import-tools#landsat8-calculator) | Red, Green, Blue, NIR, SWIR1, SWIR2 | `exportType` | Builds true-color or false-color composites | Import Tools |
 | [MosaicCalculator](./mosaic#mosaic-calculator) | Multiple GeoTIFFs | `tif_paths` | Merges images into a mosaicked raster | Mosaic |
 | [PCACalculator](./pca#pca-calculator) | Red, Green, Blue, NIR, SWIR1, SWIR2 | `selectBand` | Principal Component Analysis | PCA |
-| [AFVICalculator](./spectral-indices#afvi-calculator) | NIR, SWIR1 | - | Calculates AFVI vegetation index | Spectral Indices |
+| [AFRICalculator](./spectral-indices#afri-calculator) | NIR, SWIR1 | - | Calculates AFRI vegetation index | Spectral Indices |
 | [BICalculator](./spectral-indices#bi-calculator) | NIR, Red, Green | - | Calculates Bare Soil Index | Spectral Indices |
 | [NDVICalculator](./spectral-indices#ndvi-calculator) | NIR, Red | - | Calculates NDVI vegetation index | Spectral Indices |
 | [NDWICalculator](./spectral-indices#ndwi-calculator) | Green, NIR | - | Calculates NDWI water index | Spectral Indices |
