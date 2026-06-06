@@ -1,10 +1,38 @@
 # Spectral Indices
-
 ## Module Overview
 
 The `indices` module provides algebraic raster calculation pipelines designed to extract quantitative geophysical properties from multi-spectral satellite imagery. Every target surface feature exhibits a unique **spectral signature**—a characteristic pattern of electromagnetic radiation reflection and absorption across different wavelengths.
 
 By calculating normalized differences, empirical scaling offsets, and non-linear band ratios, these calculators isolate specific surface materials, such as chlorophyll-heavy plant canopies, exposed mineral soils, open water bodies, and artificial urban structures.
+
+```
+                    ┌────────────────────────────────┐
+                    │    Input Spectral TIF Bands    │
+                    └───────────────┬────────────────┘
+                                    │
+                                    ▼
+                    ┌────────────────────────────────┐
+                    │ self.files_handler Ingestion   │
+                    └───────────────┬────────────────┘
+                                    │
+                                    ▼
+                    ┌────────────────────────────────┐
+                    │ Linear Quantization Scaling    │ ──► $I_{\text{norm}} \in [0.0, 1.0]$
+                    └───────────────┬────────────────┘
+                                    │
+         ┌──────────────────────────┴──────────────────────────┐
+         ▼                                                     ▼
+ [Single-Band Processing Arrays]                       [Multi-Band Raster Math Engine]
+ ├─ NDVICalculator (NIR, Red)                           ├─ BICalculator (NIR, Red, Green)
+ ├─ NDWICalculator (Green, NIR)                         └─ SAVICalculator (NIR, Red, $L=0.5$)
+ ├─ UICalculator (SWIR2, NIR)                          
+ └─ AFRICalculator (NIR, SWIR1)                        
+                                    │
+                                    ▼
+                    ┌────────────────────────────────┐
+                    │    Dimensionless Float Output  │ ──► Dynamic range: $[-1.0, 1.0]$ or $[0.0, 1.0]$
+                    └────────────────────────────────┘
+```
 
 ## Mathematical & Scientific Formulations
 
@@ -22,16 +50,16 @@ $$\text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}$$
 
 #### Biophysical Interaction Properties
 
-- **Healthy Photosynthetic Canopies:** Chlorophyll pigments in functional leaves absorb up to 90% of incident visible blue and red light to power photosynthesis, resulting in low reflectance in the $\text{Red}$ spectrum ($0.02 - 0.08$). Concurrently, the internal spongy mesophyll tissue strongly scatters near-infrared radiation back into space to prevent cellular overheating, driving high $\text{NIR}$ reflectance ($0.40 - 0.70$). This divergence causes the NDVI to approach its upper limit:
+- **Healthy Photosynthetic Canopies:** Chlorophyll pigments in functional leaves absorb up to **90%** of incident visible blue and red light to power photosynthesis, resulting in low reflectance in the $\text{Red}$ spectrum ($0.02 - 0.08$). Concurrently, the internal spongy mesophyll tissue strongly scatters near-infrared radiation back into space to prevent cellular overheating, driving high $\text{NIR}$ reflectance ($0.40 - 0.70$). This divergence causes the NDVI to approach its upper limit:
     
 
 $$\text{NDVI}_{\text{veg}} \longrightarrow +1.0$$
 
-- **Exposed Soils and Bedrock:** Lacking chlorophyll structures or complex cellular scattering cavities, bare earth exhibits a steady, linear increase in reflectance across both the red and near-infrared bands. Because $\text{NIR} \approx \text{Red}$, the numerator shrinks toward zero, yielding baseline values between $0.1$ and $0.2$.
+- **Exposed Soils and Bedrock:** Lacking chlorophyll structures or complex cellular scattering cavities, bare earth exhibits a steady, linear increase in reflectance across both the red and near-infrared bands. Because $\text{NIR} \approx \text{Red}$, the numerator shrinks toward zero, yielding baseline values between **0.1** and **0.2**.
     
 - **Open Water Bodies:** Clear water strongly absorbs electromagnetic energy across the reflective infrared spectrum, dropping $\text{NIR}$ values to near zero while maintaining a slight reflectance in visible wavelengths. This results in a negative index value.
 
-### `SAVICalculator` (Soil-Adjusted Vegetation Index)
+###  `SAVICalculator` (Soil-Adjusted Vegetation Index)
 
 #### Scientific and Physical Objective
 
@@ -53,21 +81,21 @@ In sparse landscapes, variations in soil moisture, organic matter, and roughness
 
 The $L = 0.5$ adjustment factor shifts the intersection of the soil line back to the coordinate origin, minimizing the effect of background soil brightness. The multiplicative scaler $(1 + L) = 1.5$ ensures the final output remains comparable to the standard $[-1.0, 1.0]$ range.
 
-### `AFVICalculator` (Advanced Forest Vegetation Index)
+### AFRICalculator` (Aerosol Free Vegetation Index)
 
 #### Scientific and Physical Objective
 
-The AFVI is designed to map dense forest canopies and high-biomass woody vegetation. It enhances structural forest signatures while reducing sensitivity to variations in solar illumination, terrain shadowing, and background soil signatures.
+The AFRI is designed to map dense forest canopies and high-biomass woody vegetation while providing a path to bypass atmospheric aerosol scattering (like smoke, haze, or dust). It enhances structural forest signatures while reducing sensitivity to variations in solar illumination, terrain shadowing, and background soil signatures by utilizing the short-wave infrared band instead of visible red.
 
 #### Mathematical Formulation
 
 The calculation separates the input into two distinct, interacting factors:
 
-$$\text{AFVI} = (\text{NIR} - 0.66) \times \left( \frac{\text{SWIR1}}{\text{NIR} + 0.66 \times \text{SWIR1}} \right)$$
+$$\text{AFRI} = (\text{NIR} - 0.66) \times \left( \frac{\text{SWIR1}}{\text{NIR} + 0.66 \times \text{SWIR1}} \right)$$
 
 #### Biophysical Interaction Properties
 
-- **NIR Offset Constant ($\text{NIR} - 0.66$):** Dense, healthy forest canopies consistently exhibit high near-infrared reflectance. The empirical constant $0.66$ serves as a structural threshold; pixels with low near-infrared values (such as open water, shadows, or asphalt) produce negative or near-zero results, effectively suppressing non-vegetated features.
+- **NIR Offset Constant ($\text{NIR} - 0.66$):** Dense, healthy forest canopies consistently exhibit high near-infrared reflectance. The empirical constant **0.66** serves as a structural threshold; pixels with low near-infrared values (such as open water, shadows, or asphalt) produce negative or near-zero results, effectively suppressing non-vegetated features.
     
 - **Non-Linear Modulation Ratio:** The second term uses the short-wave infrared band ($\text{SWIR1}$) to modulate the index response. Because moisture-rich forest leaf canopies absorb $\text{SWIR1}$ energy while reflecting $\text{NIR}$, this ratio stays small but positive for healthy forests. This dampens variations caused by topographic shadows, ensuring consistent canopy mapping across rugged terrain.
 
@@ -101,11 +129,11 @@ The Bare Soil Index isolates exposed soil surfaces, agricultural fallow fields, 
 
 The index is calculated using a specialized normalized difference layout:
 
-$$\text{BI} = \frac{(\text{NIR} - \text{Green}) - \text{Red}}{(\text{NIR} + \text{Green}) + \text{Red}} = \frac{\text{NIR} - \text{Green} - \text{Red}}{\text{NIR} + \text{Green} + \text{Red}}$$
+$$\text{BI} = \frac{(\text{NIR} - \text{Green}) - \text{Red}}{(\text{NIR} + \text{Green} + \text{Red})} = \frac{\text{NIR} - \text{Green} - \text{Red}}{\text{NIR} + \text{Green} + \text{Red}}$$
 
 #### Biophysical Interaction Properties
 
-**Functional Inversion Reference:** Many published geological studies invert this formula to produce positive values for exposed soils. In this specific implementation, the layout uses $\text{NIR} - (\text{Green} + \text{Red})$ in the numerator. As a result, dense vegetation yields positive values, while bare soils—which show similar reflectance values across the visible green, red, and near-infrared bands—cluster near zero or drop into negative values. Concrete and asphalt structures typically produce strong negative values due to low near-infrared reflectance relative to visible wavelengths.
+ **Functional Inversion Reference:** Many published geological studies invert this formula to produce positive values for exposed soils. In this specific implementation, the layout uses $\text{NIR} - (\text{Green} + \text{Red})$ in the numerator. As a result, dense vegetation yields positive values, while bare soils—which show similar reflectance values across the visible green, red, and near-infrared bands—cluster near zero or drop into negative values. Concrete and asphalt structures typically produce strong negative values due to low near-infrared reflectance relative to visible wavelengths.
 
 ### `UICalculator` (Urban Index)
 
@@ -135,7 +163,7 @@ The following matrix cross-references the required sensor channels, target range
 |---|---|---|---|---|---|---|
 |**`NDVICalculator`**|Canopy Health & Density|$\frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}$|$[-1.0, \,\, +1.0]$|B5, B4|B8, B4|`'RdYlGn'` / `'YlGn'`|
 |**`SAVICalculator`**|Sparse / Arid Shrublands|$\frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red} + 0.5} \times 1.5$|$[-1.0, \,\, +1.0]$|B5, B4|B8, B4|`'RdYlGn'` / `'YlGn'`|
-|**`AFVICalculator`**|Dense / Woody Forests|$(\text{NIR} - 0.66) \times \frac{\text{SWIR1}}{\text{NIR} + 0.66 \cdot \text{SWIR1}}$|$[0.0, \,\, +1.0]$|B5, B6|B8, B11|`'YlGn'`|
+|**`AFRICalculator`**|Dense / Woody Forests|$(\text{NIR} - 0.66) \times \frac{\text{SWIR1}}{\text{NIR} + 0.66 \cdot \text{SWIR1}}$|$[0.0, \,\, +1.0]$|B5, B6|B8, B11|`'YlGn'`|
 |**`NDWICalculator`**|Water Bodies & Hydrology|$\frac{\text{Green} - \text{NIR}}{\text{Green} + \text{NIR}}$|$[-1.0, \,\, +1.0]$|B3, B5|B3, B8|`'Blues'`|
 |**`BICalculator`**|Bare Soil & Exposed Rock|$\frac{\text{NIR} - \text{Green} - \text{Red}}{\text{NIR} + \text{Green} + \text{Red}}$|$[-1.0, \,\, +1.0]$|B5, B4, B3|B8, B4, B3|`'inferno'` / `'hot'`|
 |**`UICalculator`**|Built-up Urban Areas|$\frac{\text{SWIR2} - \text{NIR}}{\text{SWIR2} + \text{NIR}}$|$[-1.0, \,\, +1.0]$|B7, B5|B12, B8|`'coolwarm'`|
