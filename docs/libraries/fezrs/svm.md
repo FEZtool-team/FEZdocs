@@ -5,49 +5,37 @@ The `svm` module implements a Supervised Support Vector Machine (SVM) classifica
 Using an interactive OpenCV window, analysts select training coordinates directly on a live RGB preview of the image. The class extracts the underlying six-dimensional spectral profiles at those specific coordinates, trains an SVM model using a soft-margin Radial Basis Function (RBF) kernel, and classifies the remaining pixels across the entire spatial grid.
 
 ```
-           [6 Raster Bands Paths List]
-                       │
-	                   ▼
-┌──────────────────────────────────────────────┐
-│     OpenCV Graphical UI Processing Frame     │ ──► Generates [0,1] normalized 
-└──────────────────────┬───────────────────────┘     RGB canvas
-					   │							          
-		               │
-                       ▼
-┌──────────────────────────────────────────────┐
-│  Interactive Coordinate Capture Subroutine   │ ──► Left-clicks sequentially 
-└──────────────────────┬───────────────────────┘     register locationsfor $K$
-					   │							 classes $\times$ $N$
-					   │                             samples.
-					   │							 
-					   │									   
-	                   │
-                       ▼
-┌──────────────────────────────────────────────┐
-│  Spectral Signature Matrix Ingestion ($X$)   │ ──► Pulls multi-spectral
-└──────────────────────┬───────────────────────┘     feature vectors:$\mathbf{x}
-					   │							 \in \mathbb{R}^6$ per
-					   │							 training pixel.
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│     Soft-Margin RBF Kernel Optimization      │ ──► Maps vectors implicitly 
-└──────────────────────┬───────────────────────┘     into high-D space using
-					   │							 adaptive scaling ($\gamma =
-					   │							 \text{"scale"}$).
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│   One-vs-One Multi-Class Decision Matrix     │ ──► Resolves $K(K-1)/2$ 
-└──────────────────────┬───────────────────────┘     pairwise tournaments via
-					   │							 majority voting logic.
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│        Global Spatial Transformation         │ ──► Classifies entire scene
-└──────────────────────────────────────────────┘     grid array; outputs
-													 categorized thematic map
-													 $(H, W)$.
+                   [6 Raster Bands Paths List]
+                                │
+                                ▼
+         ┌──────────────────────────────────────────────┐
+         │     OpenCV Graphical UI Processing Frame     │ ──► Generates [0,1] normalized RGB canvas
+         └──────────────────────┬───────────────────────┘
+                                │
+                                ▼
+         ┌──────────────────────────────────────────────┐
+         │  Interactive Coordinate Capture Subroutine   │ ──► Left-clicks sequentially register locations
+         └──────────────────────┬───────────────────────┘     for $K$ classes $\times$ $N$ samples.
+                                │
+                                ▼
+         ┌──────────────────────────────────────────────┐
+         │  Spectral Signature Matrix Ingestion ($X$)   │ ──► Pulls multi-spectral feature vectors:
+         └──────────────────────┬───────────────────────┘     $\mathbf{x} \in \mathbb{R}^6$ per training pixel.
+                                │
+                                ▼
+         ┌──────────────────────────────────────────────┐
+         │     Soft-Margin RBF Kernel Optimization      │ ──► Maps vectors implicitly into high-D space
+         └──────────────────────┬───────────────────────┘     using adaptive scaling ($\gamma = \text{"scale"}$).
+                                │
+                                ▼
+         ┌──────────────────────────────────────────────┐
+         │   One-vs-One Multi-Class Decision Matrix     │ ──► Resolves $K(K-1)/2$ pairwise tournaments 
+         └──────────────────────┬───────────────────────┘     via majority voting logic.
+                                │
+                                ▼
+         ┌──────────────────────────────────────────────┐
+         │        Global Spatial Transformation         │ ──► Classifies entire scene grid array;
+         └──────────────────────────────────────────────┘     outputs categorized thematic map $(H, W)$.
 ```
 ## Comprehensive Mathematical Foundations
 
