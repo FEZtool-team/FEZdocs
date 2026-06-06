@@ -1,33 +1,67 @@
-# SVM
-
 ## Module Overview
 
 The `svm` module implements a Supervised Support Vector Machine (SVM) classification architecture designed for land-cover mapping and thematic feature extraction from multi-spectral satellite imagery. The module bridges machine learning workflows and interactive geospatial data engineering by providing an integrated graphical interface for manual training site selection.
 
 Using an interactive OpenCV window, analysts select training coordinates directly on a live RGB preview of the image. The class extracts the underlying six-dimensional spectral profiles at those specific coordinates, trains an SVM model using a soft-margin Radial Basis Function (RBF) kernel, and classifies the remaining pixels across the entire spatial grid.
 
+```
+           [6 Raster Bands Paths List]
+                       │
+	                   ▼
+┌──────────────────────────────────────────────┐
+│     OpenCV Graphical UI Processing Frame     │ ──► Generates [0,1] normalized 
+└──────────────────────┬───────────────────────┘     RGB canvas
+					   │							          
+		               │
+                       ▼
+┌──────────────────────────────────────────────┐
+│  Interactive Coordinate Capture Subroutine   │ ──► Left-clicks sequentially 
+└──────────────────────┬───────────────────────┘     register locationsfor $K$
+					   │							 classes $\times$ $N$
+					   │                             samples.
+					   │							 
+					   │									   
+	                   │
+                       ▼
+┌──────────────────────────────────────────────┐
+│  Spectral Signature Matrix Ingestion ($X$)   │ ──► Pulls multi-spectral
+└──────────────────────┬───────────────────────┘     feature vectors:$\mathbf{x}
+					   │							 \in \mathbb{R}^6$ per
+					   │							 training pixel.
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│     Soft-Margin RBF Kernel Optimization      │ ──► Maps vectors implicitly 
+└──────────────────────┬───────────────────────┘     into high-D space using
+					   │							 adaptive scaling ($\gamma =
+					   │							 \text{"scale"}$).
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│   One-vs-One Multi-Class Decision Matrix     │ ──► Resolves $K(K-1)/2$ 
+└──────────────────────┬───────────────────────┘     pairwise tournaments via
+					   │							 majority voting logic.
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│        Global Spatial Transformation         │ ──► Classifies entire scene
+└──────────────────────────────────────────────┘     grid array; outputs
+													 categorized thematic map
+													 $(H, W)$.
+```
 ## Comprehensive Mathematical Foundations
 
 ### Feature Representation Space
 
 Each independent image pixel is treated as a distinct statistical sample in a six-dimensional spectral space. The feature vector $\mathbf{x}$ for a given coordinate is formed by stacking its normalized reflectance values from the six available bands:
 
-$$
-\mathcal{D}
-=
-\left\{
-(\mathbf{x}_i, y_i)
-\mid
-\mathbf{x}_i \in \mathbb{R}^6,\;
-y_i \in \{1,2,\dots,K\}
-\right\}_{i=1}^{N_{\text{train}}}
-$$
+$$\mathbf{x} = \begin{bmatrix} x_{\text{Red}} & x_{\text{Green}} & x_{\text{Blue}} & x_{\text{NIR}} & x_{\text{SWIR1}} & x_{\text{SWIR2}} \end{bmatrix}^T \in \mathbb{R}^6$$
 
 The complete training array gathered via the user interface consists of $N_{\text{train}}$ examples:
 
 $$\mathcal{D} = \left\{ (\mathbf{x}_i, y_i) \mid \mathbf{x}_i \in \mathbb{R}^6, \,\, y_i \in \{1, 2, \dots, K\} \right\}_{i=1}^{N_{\text{train}}}$$
 
-Where $K$ represents the total number of target land-cover classes, and $N_{\text{train}} = K \times \text{sample\ number}$.
+Where $K$ represents the total number of target land-cover classes, and $N_{\text{train}} = K \times \text{sample\_number}$.
 
 ### The Binary Maximal Margin Classifier
 
@@ -73,7 +107,7 @@ $$\hat{y} = \arg\max_{k \in \{1, \dots, K\}} \sum_{m=1}^{K(K-1)/2} \mathbb{I}\le
 
 ## Class Specification: `SVMCalculator`
 
-### 3.1. Operational Interface Parameters
+### Operational Interface Parameters
 
 #### Constructor Arguments (`__init__`)
 
