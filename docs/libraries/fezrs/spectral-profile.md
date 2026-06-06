@@ -1,5 +1,4 @@
-# Spectral Profile
-
+# Spectral profile
 ## Module Overview
 
 The `spectral_profile` module computes and visualizes the average spectral signatures across multi-spectral satellite image collections. In remote sensing, a **spectral profile** (or spectral signature) charts how a target surface reflects electromagnetic radiation across different wavelengths. This signature serves as a diagnostic fingerprint for characterizing dominant surface materials and evaluating radiometric variations between land-cover classes.
@@ -34,19 +33,19 @@ This module unifies separate spectral bands—typically including the visible sp
        └──────────────────────────────┘
 ```
 
-## Mathematical Processing Framework
+## 2. Mathematical Processing Framework
 
-### Spatial Band Aggregation
+### 2.1. Spatial Band Aggregation
 
 The calculator filters the incoming files to extract valid, non-null bands and stores them in an ordered layout:
 
-$$\text{image\ columns} = \{ \text{band\ name} : I_{\text{band}}(x, y) \mid I_{\text{band}} \neq \text{None} \}$$
+$$\text{image\_columns} = \{ \text{band\_name} : I_{\text{band}}(x, y) \mid I_{\text{band}} \neq \text{None} \}$$
 
 This collection is converted into a structurally indexed array where the dictionary keys determine the $X$-axis tracking names:
 
-$$\text{image\ columns\ list\ of\ bands} = [b_1, b_2, \dots, b_m] \quad \text{where } m \le 6$$
+$$\text{image\_columns\_list\_of\_bands} = [b_1, b_2, \dots, b_m] \quad \text{where } m \le 6$$
 
-### Global Spatial Averaging
+### 2.2. Global Spatial Averaging
 
 For each valid single-channel raster layer $I_{\text{band}}$ of height $H$ and width $W$, the engine calculates the overall radiometric mean ($\mu_{\text{band}}$). This scalar value represents the arithmetic average of the entire pixel population:
 
@@ -54,7 +53,7 @@ $$\mu_{\text{band}} = \frac{1}{H \times W} \sum_{x=1}^{H} \sum_{y=1}^{W} I_{\tex
 
 This calculation reduces the 2D spatial array to a single statistical weight, balancing local anomalies to capture the broad thematic signature of the scene.
 
-### Vector Coordinate Mapping
+### 2.3. Vector Coordinate Mapping
 
 The calculated data points are synchronized into two matching operational vectors that define the plot tracking coordinates:
 
@@ -64,7 +63,7 @@ $$\text{yaxis} = [\mu_{b_1}, \mu_{b_2}, \dots, \mu_{b_m}]$$
 
 This vector pair creates a discrete function $f(\text{band}) = \mu_{\text{band}}$ that visualizes variations in surface reflectance across the measured spectrum.
 
-## Remote Sensing Interpretation Profiles
+## 3. Remote Sensing Interpretation Profiles
 
 The shape of the resulting curve reveals the dominant environmental features and land-cover types across the scene:
 
