@@ -53,7 +53,8 @@ The FEZteam contributors guide the direction of FEZtool libraries, documentation
   <article class="team-card team-card--profile">
     <img class="team-avatar" src="https://github.com/aradfarahani.png?size=192" alt="Arad Farahani" loading="lazy">
     <div class="team-card__body">
-      <h3>Arad Farahani</h3>
+      <h3>Mahdi Farmahini Farahani</h3>
+      <p class="team-alias">Arad</p>
       <p class="team-role">The R&amp;D Spark</p>
     </div>
     <div class="team-socials" aria-label="Arad Farahani social links">
@@ -102,6 +103,7 @@ The FEZteam contributors guide the direction of FEZtool libraries, documentation
     <img class="team-avatar" src="https://github.com/mhdned.png?size=192" alt="Mahdi Nedaee" loading="lazy">
     <div class="team-card__body">
       <h3>Mahdi Nedaee</h3>
+      <p class="team-alias">Mehtiuo</p>
       <p class="team-role">The Do-It-All Engine</p>
     </div>
     <div class="team-socials" aria-label="Mahdi Nedaee social links">
@@ -138,6 +140,7 @@ The FEZteam contributors guide the direction of FEZtool libraries, documentation
       <div>
         <dt>Project areas</dt>
         <dd><a href="https://github.com/FEZtool-team/FEZrs" target="_blank" rel="noopener">FEZrs</a></dd>
+        <dd><a href="https://github.com/FEZtool-team/FEZdocs" target="_blank" rel="noopener">FEZdocs</a></dd>
       </div>
       <div>
         <dt>Known for</dt>
@@ -178,6 +181,42 @@ The FEZteam contributors guide the direction of FEZtool libraries, documentation
       <div>
         <dt>Known for</dt>
         <dd>Being the teammate whose activity can look quiet until the situation gets complex. When big ideas need distance, trust, and a sharper map of what could happen next, Mohammad is the one the team wants in the room.</dd>
+      </div>
+    </dl>
+  </article>
+
+  <article class="team-card team-card--profile">
+    <img class="team-avatar" src="https://github.com/elmielmo.png?size=192" alt="Parsa Elmi" loading="lazy">
+    <div class="team-card__body">
+      <h3>Parsa Elmi</h3>
+      <p class="team-role">The Hand Behind the Pages</p>
+    </div>
+    <div class="team-socials" aria-label="Parsa Elmi social links">
+      <a class="team-social" href="https://github.com/elmielmo" target="_blank" rel="noopener" aria-label="Parsa Elmi on GitHub">
+        <span class="team-social__icon team-social__icon--github" aria-hidden="true"></span>
+      </a>
+      <a class="team-social" href="https://www.linkedin.com/in/elmiparsa" target="_blank" rel="noopener" aria-label="Parsa Elmi on LinkedIn">
+        <span class="team-social__icon team-social__icon--linkedin" aria-hidden="true"></span>
+      </a>
+      <a class="team-social" href="https://www.facebook.com/parsa.elmi" target="_blank" rel="noopener" aria-label="Parsa Elmi on Facebook">
+        <span class="team-social__icon team-social__icon--facebook" aria-hidden="true"></span>
+      </a>
+      <a class="team-social" href="https://www.instagram.com/elmiparsa" target="_blank" rel="noopener" aria-label="Parsa Elmi on Instagram">
+        <span class="team-social__icon team-social__icon--instagram" aria-hidden="true"></span>
+      </a>
+    </div>
+    <dl class="team-meta team-meta--profile">
+      <div>
+        <dt>Focus</dt>
+        <dd>Contracts, articles, papers, business direction, team growth, and keeping the human side of FEZtool in good shape.</dd>
+      </div>
+      <div>
+        <dt>Project areas</dt>
+        <dd><a href="https://github.com/FEZtool-team/FEZrs" target="_blank" rel="noopener">FEZrs</a></dd>
+      </div>
+      <div>
+        <dt>Known for</dt>
+        <dd>Reading the room before the room catches fire. Parsa brings HR sense, business judgment, and the rare ability to turn a heated argument back into an actual decision.</dd>
       </div>
     </dl>
   </article>
