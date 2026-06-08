@@ -127,8 +127,23 @@
   line-height: 1.35;
 }
 
+.team-alias {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 6px 0 0;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--vp-c-border) 62%, transparent);
+  border-radius: 999px;
+  color: var(--vp-c-text-2);
+  background: color-mix(in srgb, var(--vp-c-bg-soft) 68%, transparent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .team-role {
-  margin: 4px 0 18px;
+  margin: 8px 0 18px;
   color: var(--vp-c-text-3);
   font-size: 0.92rem;
   font-weight: 600;
@@ -249,6 +264,10 @@
 
 .team-social__icon--instagram {
   --team-social-icon: url("https://api.iconify.design/simple-icons/instagram.svg");
+}
+
+.team-social__icon--facebook {
+  --team-social-icon: url("https://api.iconify.design/simple-icons/facebook.svg");
 }
 
 .team-social__icon--website {
