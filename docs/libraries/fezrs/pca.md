@@ -1,4 +1,4 @@
-# Pca
+# PCA
 ## Module Overview
 
 The `pca` module implements a Principal Component Analysis (PCA) workflow designed for dimensionality reduction, spectral-spatial information compression, and uncorrelated feature extraction from multi-spectral satellite imagery. Satellite sensors capture surface reflectance across multiple overlapping spectral bands, which often results in high data redundancy and strong correlation between adjacent channels.
