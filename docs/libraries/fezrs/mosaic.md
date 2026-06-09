@@ -1,10 +1,42 @@
 # Mosaic
-
 ## Module Overview
 
 The `mosaic` module provides scalable, coordinate-aligned image-merging architectures designed to consolidate multiple discrete satellite imagery tiles into a single georeferenced master mosaic. In regional or country-scale remote sensing, a single satellite pass rarely covers the entire target study area. Analyses instead require combining multiple overlapping image swaths or structural tiles.
 
 This module resolves these spatial divisions by calculating structural bounding extents, establishing unified coordinate spaces, and mapping independent pixel grids into a seamless, unified mosaic tensor. The resulting file preserves full metadata transparency, enabling immediate downstream feature engineering across the expanded study area.
+
+```
+                  [Input Raster Files Path List]
+                  (e.g., tile_01.tif, tile_02.tif)
+                                 │
+                                 ▼
+                     ┌──────────────────────┐
+                     │   MosaicCalculator   │
+                     └───────────┬───────────┘
+                                 │
+                                 ▼
+                     ┌──────────────────────┐
+                     │  rasterio.merge Core │
+                     └───────────┬───────────┘
+                                 │
+         ┌───────────────────────┴───────────────────────┐
+         ▼                                               ▼
+ [Spatial Extent Union]                        [Grid Overlap Resolution]
+ Calculates absolute geographic bounding box     Evaluates pixel decision rule:
+ via coordinate transform tracking.             $output(x, y) = I_{k^*}(x, y)$
+                                 │                               │
+                                 └───────────────┬───────────────┘
+                                                 │
+                                                 ▼
+                                     ┌───────────────────────┐
+                                     │ File Output Lifecycle │
+                                     └───────────┬───────────┘
+                                                 │
+                        ┌────────────────────────┴────────────────────────┐
+                        ▼                                                 ▼
+             [Fully Georeferenced GeoTIFF]                        [Visual PNG Preview]
+             Saved to `self._output` for chaining                Auto-named via `Mosaic_` + UUID
+```
 
 ## Comprehensive Class Specification: `MosaicCalculator`
 
@@ -80,11 +112,7 @@ When multiple input images overlap the same geographic area, the module applies 
 
 The engine evaluates input files in the order they appear in the provided file list. For each output pixel location, it selects the value from the first image in the list that contains valid data (non-nodata values) at those coordinates:
 
-$$
-\mathrm{Output}(x,y)=I_{k^\ast}(x,y)
-\quad\mathrm{where}\quad
-k^\ast=\min\{k \mid I_k \text{ is valid at } (x,y)\}
-$$
+$$\text{Output}(x, y) = I_{k^*}(x, y) \quad \text{where } k^* = \min\left\{k \mid I_k \text{ is valid at } (x, y)\right\}$$
 
 Any data from subsequent overlapping layers is ignored at that specific location.
 
@@ -156,10 +184,10 @@ print(f"Operational master mosaic successfully saved at: {georeferenced_mosaic_p
 
 While the calculator defaults to the `"first"` pixel selection strategy, alternative merging methods can be passed directly to the underlying `rasterio.merge.merge` library to handle overlapping areas. The table below profiles these alternative strategies:
 
-|**Strategy**|**Functional Behavior Profile**|**Use Cases**|
-|---|---|---|
-|**`"first"`** _(Default)_|Retains the pixel value from the first image in the file list that contains valid data at those coordinates.|Standard data combination when tiles share a consistent calibration profile.|
-|**`"last"`**|Overwrites previous layers, using the pixel value from the last valid image in the file list.|Updating an existing base map with newer imagery data.|
-|**`"min"`**|Evaluates overlapping pixels across all layers and keeps the lowest value.|Minimizing transient bright anomalies like cloud cover or glint.|
-|**`"max"`**|Evaluates overlapping pixels across all layers and keeps the highest value.|Highlighting maximum surface extents or urban thermal signatures.|
-|**`"mean"`**|Computes the mathematical average value across all valid overlapping pixels.|Smoothing out temporal differences and reducing random sensor noise.|
+| **Strategy**              | **Functional Behavior Profile**                                                                              | **Use Cases**                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| **`"first"`** _(Default)_ | Retains the pixel value from the first image in the file list that contains valid data at those coordinates. | Standard data combination when tiles share a consistent calibration profile. |
+| **`"last"`**              | Overwrites previous layers, using the pixel value from the last valid image in the file list.                | Updating an existing base map with newer imagery data.                       |
+| **`"min"`**               | Evaluates overlapping pixels across all layers and keeps the lowest value.                                   | Minimizing transient bright anomalies like cloud cover or glint.             |
+| **`"max"`**               | Evaluates overlapping pixels across all layers and keeps the highest value.                                  | Highlighting maximum surface extents or urban thermal signatures.            |
+| **`"mean"`**              | Computes the mathematical average value across all valid overlapping pixels.                                 | Smoothing out temporal differences and reducing random sensor noise.         |
