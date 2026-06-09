@@ -1,8 +1,28 @@
 # Image Enhancement
-
 ## Module Overview
 
 The `enhancement` module delivers a comprehensive suite of linear and non-linear radiometric transformation pipelines designed to optimize the visual quality, structural contrast, and dynamic range of satellite imagery. These processing steps adjust the distribution of digital numbers ($DN$) across the available bit-depth spectrum, maximizing feature interpretability for human analysts or standardizing input spaces for downstream machine learning and deep learning computer vision architectures.
+
+```
+                    fezrs.base.BaseTool        HistogramExportMixin
+                            │                           │
+                            └─────────────┬─────────────┘
+                                          │
+                                          ▼
+                      ┌───────────────────────────────────────┐
+                      │    fezrs.tools.enhancement Module     │
+                      └───────────────────┬───────────────────┘
+                                          │
+         ┌────────────────────────────────┴────────────────────────────────┐
+         ▼                                                                 ▼
+ [Single-Band Processing Matrix]                               [Multi-Band RGB Processing Stacks]
+ ├─ OriginalCalculator / FloatCalculator                       ├─ OriginalRGBCalculator
+ ├─ EqualizeCalculator                                         ├─ EqualizeRGBCalculator
+ ├─ AdaptiveCalculator (CLAHE)                                 ├─ AdaptiveRGBCalculator
+ ├─ GammaCalculator                                            └─ GammaRGBCalculator
+ ├─ LogAdjustCalculator                                        
+ └─ SigmoidAdjustCalculator                                    
+```
 
 ## Global Radiometric Range Standardization
 
@@ -216,7 +236,7 @@ This inverse mapping compresses shadow detail and expands variations in bright r
         
     - `inverse` (`bool`): Determines whether to apply the forward log or inverse exponential curve.
 
-### SigmoidAdjustCalculator` (Sigmoid Contrast Optimization)
+### `SigmoidAdjustCalculator` (Sigmoid Contrast Optimization)
 
 #### Scientific and Physical Objective
 
