@@ -1,10 +1,27 @@
 # GLCM (Gray Level Co-occurrence Matrix)
-
 ## Module Overview
 
 The `glcm` module implements second-order spatial statistical architectures designed to quantify, analyze, and map land-surface textures using the **Gray-Level Co-occurrence Matrix (GLCM)** and Haralick texture features. In multi-spectral remote sensing, relying solely on spectral reflectance parameters often fails to differentiate structurally distinct land covers that share overlapping spectral signatures—such as separating complex urban environments from highly reflective bare soils, or uniform natural grasslands from industrial row-crop agriculture.
 
 This module addresses this limitation by processing the spatial arrangement and frequency of localized tone distributions. It extracts structural indices that capture surface roughness, homogeneity, and directional lineaments, producing continuous-valued thematic maps optimized for advanced image segmentation and land-cover classification.
+
+```
+                  fezrs.base.BaseTool [Base Architecture]
+                            │
+                            ▼
+          ┌───────────────────────────────────┐
+          │     fezrs.tools.glcm Module       │
+          └─────────────────┬─────────────────┘
+                            │
+                            ▼
+                     GLCMCalculator
+                            │
+     ┌──────────────────────┴──────────────────────┐
+     ▼                                             ▼
+[Spatial Sliding Window Engine]          [scikit-image Backend]
+  ├─ 8-Bit Quantization Matrix Mapping     ├─ skimage.feature.graycomatrix
+  └─ Output Grid Assembly Engine           └─ skimage.feature.graycoprops
+```
 
 ## Comprehensive Class Specification: `GLCMCalculator`
 
@@ -99,15 +116,15 @@ $$\sigma_i = \sqrt{\sum_{i=0}^{G-1} \sum_{j=0}^{G-1} (i - \mu_i)^2 \cdot p(i, j)
 ### Processing Workflow and Spatial Layout Mechanics
 
 ```
-Input Image (H x W)    Sliding Analysis Window    Output Raster Construction
-┌──────────────────┐     ┌──────────────────┐     ┌────────────────────────────┐
-│                  │     │ x ──► Stride = 1 │     │ Valid Feature Map          │
-│                  │     │ │                │     │ ┌──────────────────────┐   │
-│                  │ ───►│ ▼                │ ───►│ │                      │   │
-│                  │     │ Window Size (W)  │     │ │                      │   │
-│                  │     └──────────────────┘     │ └──────────────────────┘   │
-│                  │      Computes GLCM via       │ Unprocessed Border Padding │
-└──────────────────┘      skimage per step        └────────────────────────────┘
+  Input Image (H x W)                      Sliding Analysis Window             Output Raster Construction
+┌──────────────────────────────┐          ┌───────────────────┐               ┌──────────────────────────────┐
+│                              │          │ x ──► Stride = 1  │               │Valid Feature Map             │
+│                              │          │ │                 │               │ ┌──────────────────────┐     │
+│                              │  ───►    │ ▼                 │       ───►    │ │                     │     │
+│                              │          │ Window Size (W)   │               │ │                     │     │
+│                              │          └───────────────────┘               │ └──────────────────────┘     │
+│                              │          Computes GLCM via                   │ Unprocessed Border Padding   │
+└──────────────────────────────┘          skimage per step                    └──────────────────────────────┘
 ```
 
 1. **Quantization Baseline:** The pipeline extracts the single-band raster array (typically the Near-Infrared band) and casts it to an 8-bit unsigned integer array (`uint8`).
@@ -125,10 +142,10 @@ Input Image (H x W)    Sliding Analysis Window    Output Raster Construction
 - `nir_path` (`str` | `Path`): File location pointing to the single-band target raster (Near-Infrared recommended).
     
 - `window_size` (`int`): Dimension of the square local analysis window. Must be an odd integer satisfying:
-    
 
-$$\text{window\ size} \ge 3$$
-	
+
+$$\text{window\_size} \ge 3$$
+
 - `propery` (`str`): Target Haralick feature name selection. Must match one of the following strings:
     
     - `"contrast"`, `"dissimilarity"`, `"homogeneity"`, `"ASM"`, `"energy"`, `"correlation"`.
