@@ -1,8 +1,19 @@
 # Change Detection
-
 ## Module Overview
 
-The `change_detection` module provides a comprehensive suite of remote sensing tools designed to isolate, classify, and quantify temporal surface dynamics using bi-temporal satellite imagery. By analyzing multi-spectral imagery captured across two distinct temporal windows—typically classified as **Pre-Event (t0​, Before)** and **Post-Event (t1​, After)**—these tools facilitate automated monitoring of ecological disturbances such as wildfire burn severity, flood inundation, land-cover conversions, and vegetation degradation.
+The `change_detection` module provides a comprehensive suite of remote sensing tools designed to isolate, classify, and quantify temporal surface dynamics using bi-temporal satellite imagery. By analyzing multi-spectral imagery captured across two distinct temporal windows—typically classified as **Pre-Event ($t_0$, Before)** and **Post-Event ($t_1$, After)**—these tools facilitate automated monitoring of ecological disturbances such as wildfire burn severity, flood inundation, land-cover conversions, and vegetation degradation.
+
+```
+       fezrs.base.BaseTool [Base Architecture]
+                 │
+                 ▼
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │                   fezrs.tools.change_detection Module                  │
+ ├───────────────────┬─────────────────────┬──────────────────────────────┤
+ │                   │                     │                              │
+ ▼                   ▼                     ▼                              ▼
+BurnCalculator   IndicesCalculator   MagDirCalculator    SubDivCalculator & TimeCalculator
+```
 
 ## Common Dependencies & Inheritance Model
 
@@ -13,7 +24,6 @@ All tools share a strict, predictable execution lifecycle managed by the parent 
 - **Processing Lifecycle:** Every tool overrides the private engineering core `_validate()` and the main operational gateway `process()`.
     
 - **Output Pipe:** The `execute()` method serializes the internal computed state (`self._output`) directly to disk as geo-referenced arrays or high-fidelity visual matrices using Matplotlib.
-
 
 ## Comprehensive Class Specifications
 
@@ -27,20 +37,20 @@ The primary operational goal of `BurnCalculator` is to compute the **Differenced
 
 Healthy vegetative canopies exhibit high cellular reflectance in the Near-Infrared ($NIR$) spectrum due to the structural scattering properties of leaf mesophyll tissue, alongside low reflectance in the Short-Wave Infrared ($SWIR2$) band due to strong absorption by liquid water stored within the plant tissue.
 
-During an intense fire event, photosynthetic vegetation is consumed, destroying canopy architecture and liquid water reservoirs. The surface is converted into ash, charcoal, and exposed mineral soil. This radical physical shift triggers a steep drop in NIR reflectance coupled with a profound increase in $SWIR2$ reflectance.
+During an intense fire event, photosynthetic vegetation is consumed, destroying canopy architecture and liquid water reservoirs. The surface is converted into ash, charcoal, and exposed mineral soil. This radical physical shift triggers a steep drop in $NIR$ reflectance coupled with a profound increase in $SWIR2$ reflectance.
 
 ```
 [Healthy Canopy] ──────► High NIR Reflection  + High SWIR2 Absorption ──► High Positive NBR
 [Burned Canopy]  ──────► Low NIR Reflection   + Low SWIR2 Absorption  ──► Negative/Low NBR
 ```
 
-The **Normalized Burn Ratio ($NBR$)** mathematically scales this relationship within normalized limits of $[−1.0,+1.0]$:
+The **Normalized Burn Ratio ($NBR$)** mathematically scales this relationship within normalized limits of $[-1.0, +1.0]$:
 
 $$NBR = \frac{NIR - SWIR2}{NIR + SWIR2}$$
 
 To eliminate background physical constants, topographical lighting discrepancies, and solar zenith illumination geometry, the **Differenced Normalized Burn Ratio ($dNBR$)** evaluates the absolute delta across the temporal baseline:
 
-$$dNBR = NBR_{before} - NBR_{after}$$
+$$dNBR = NBR_{\text{before}} - NBR_{\text{after}}$$
 
 In code execution, the delta is structurally represented as:
 
@@ -48,37 +58,36 @@ $$\Delta NBR = NBR_{t_0} - NBR_{t_1}$$
 
 An elevated positive value directly registers vegetative loss and severe canopy charring. The module applies a strict binary thresholding condition to classify highly affected fire zones:
 
-$$\text{Burn Mask} = \begin{cases} \text{True (1)}, & \text{if } dNBR > 0.7 \\ \text{False (0)}, & \text{if } dNBR \le 0.7 \end{cases}$$
+$$\text{Burn Mask} = \begin{cases} \text{True (1),} & \text{if } dNBR > 0.7 \\ \text{False (0),} & \text{if } dNBR \le 0.7 \end{cases}$$
 
 #### Standard Interpretation Scale
 
-The operational cutoff of 0.7 targeting high-severity burn scars conforms strictly to the environmental monitoring metrics established by Key & Benson (2006) and the United States Geological Survey (USGS):
+The operational cutoff of $0.7$ targeting high-severity burn scars conforms strictly to the environmental monitoring metrics established by Key & Benson (2006) and the United States Geological Survey (USGS):
 
-| $dNBR$ Interval Range | Biophysical Classification Severity Status          |
-| --------------------- | --------------------------------------------------- |
-| < 0.10                | Unburned / Control Zone                             |
-| 0.10 ≤ $dNBR$ ≤ 0.27  | Low-Severity Burn                                   |
-| 0.27 < $dNBR$ ≤ 0.66  | Moderate-Severity Burn                              |
-| > 0.66                | High-Severity Burn Scar (> 0.70 application cutoff) |
+|**dNBR Interval Range**|**Biophysical Classification Severity Status**|
+|---|---|
+|$< 0.10$|Unburned / Control Zone|
+|$0.10 \le dNBR \le 0.27$|Low-Severity Burn|
+|$0.27 < dNBR \le 0.66$|Moderate-Severity Burn|
+|$> 0.66$|High-Severity Burn Scar ($> 0.70$ application cutoff)|
 
 #### Edge-Case Computational Handling
 
-In rare conditions where absolute dark pixels or shadow voids generate a total zero denominator ($NIR+SWIR2=0$), the resulting $NaN$ floating-point evaluation is trapped by the conditional evaluator ($NaN>0.7$), naturally falling back safely to a `False` assignment.
+In rare conditions where absolute dark pixels or shadow voids generate a total zero denominator ($NIR + SWIR2 = 0$), the resulting $\text{NaN}$ floating-point evaluation is trapped by the conditional evaluator ($\text{NaN} > 0.7$), naturally falling back safely to a `False` assignment.
 
 #### Interface Architecture
 
 - **Constructor Method (`__init__`) Input Arguments:**
     
-    - `nir_path` (`str` | `Path`): Post-event ($t_1$​) Near-Infrared band file location.
+    - `nir_path` (`str` | `Path`): Post-event ($t_1$) Near-Infrared band file location.
         
-    - `swir2_path` (`str` | `Path`): Post-event ($t_1$​) Short-Wave Infrared (Band 7 equivalent) file location.
+    - `swir2_path` (`str` | `Path`): Post-event ($t_1$) Short-Wave Infrared (Band 7 equivalent) file location.
         
-    - `before_nir_path` (`str` | `Path`): Pre-event ($t_0$​) Near-Infrared reference band file location.
+    - `before_nir_path` (`str` | `Path`): Pre-event ($t_0$) Near-Infrared reference band file location.
         
-    - `before_swir2_path` (`str` | `Path`): Pre-event ($t_0$​) Short-Wave Infrared reference band file location.
+    - `before_swir2_path` (`str` | `Path`): Pre-event ($t_0$) Short-Wave Infrared reference band file location.
     
 - **Return State (`process()`):** Returns a boolean `numpy.ndarray` acting as a strict spatial mask for severe burn perimeters.
-
 
 #### Execution Implementation
 
@@ -107,7 +116,7 @@ burn_analyzer.execute(
 
 #### Scientific & Physical Objective
 
-This calculator extracts the absolute, standalone Normalized Burn Ratio ($NBR$) array for a singular, targeted date instance ($t_0$​ or $t_1​$). It provides structural diagnostic controls for baseline canopy vigor, pre-fire fuel-load mapping, or intermediate analytical steps.
+This calculator extracts the absolute, standalone Normalized Burn Ratio ($NBR$) array for a singular, targeted date instance ($t_0$ or $t_1$). It provides structural diagnostic controls for baseline canopy vigor, pre-fire fuel-load mapping, or intermediate analytical steps.
 
 #### Theoretical Foundation & Mathematical Formulations
 
@@ -117,29 +126,27 @@ $$NBR = \frac{NIR - SWIR2}{NIR + SWIR2}$$
 
 The temporal trajectory is governed explicitly via the `time` parameter flag:
 
-- When `time="before"`, calculations map the initial environmental status ($t_0$​). This helps diagnose pre-fire desiccation or moisture stress across vulnerable canopies.
+- When `time="before"`, calculations map the initial environmental status ($t_0$). This helps diagnose pre-fire desiccation or moisture stress across vulnerable canopies.
     
-- When `time="after"`, calculations map the structural landscape distribution ($t_1$​) after the occurrence of the physical disturbance event.
+- When `time="after"`, calculations map the structural landscape distribution ($t_1$) after the occurrence of the physical disturbance event.
 
-
-The array maintains continuous floating-point values constrained to a $[−1.0,1.0]$ range.
+The array maintains continuous floating-point values constrained to a $[-1.0, 1.0]$ range.
 
 #### Interface Architecture
 
 - **Constructor Method (`__init__`) Input Arguments:**
     
-    - `nir_path` (`str` | `Path`): Post-event ($t_1$​) NIR band file path.
+    - `nir_path` (`str` | `Path`): Post-event ($t_1$) $NIR$ band file path.
         
-    - `swir2_path` (`str` | `Path`): Post-event ($t_1$​) SWIR2 band file path.
+    - `swir2_path` (`str` | `Path`): Post-event ($t_1$) $SWIR2$ band file path.
         
-    - `before_nir_path` (`str` | `Path`): Pre-event ($t_0$​) NIR band file path.
+    - `before_nir_path` (`str` | `Path`): Pre-event ($t_0$) $NIR$ band file path.
         
-    - `before_swir2_path` (`str` | `Path`): Pre-event ($t_0$​) SWIR2 band file path.
+    - `before_swir2_path` (`str` | `Path`): Pre-event ($t_0$) $SWIR2$ band file path.
         
     - `time` (`Literal["before", "after"]`): Directing pointer selecting the active target layer matrix.
     
 - **Return State (`process()`):** Returns a floating-point `numpy.ndarray` array representing absolute $NBR$ spectral coordinates.
-
 
 #### Execution Implementation
 
@@ -169,7 +176,7 @@ nbr_baseline.execute(
 
 #### Scientific & Physical Objective
 
-`MagDirCalculator` processes spatial dynamics through Change Vector Analysis (CVA) across a dual-dimensional spectral feature space ($NIR×SWIR1$). This technique quantifies the exact magnitude of spectral pixel shifts and categorizes the physical direction of land-cover transitions.
+`MagDirCalculator` processes spatial dynamics through Change Vector Analysis (CVA) across a dual-dimensional spectral feature space ($NIR \times SWIR1$). This technique quantifies the exact magnitude of spectral pixel shifts and categorizes the physical direction of land-cover transitions.
 
 #### Theoretical Foundation & Mathematical Formulations
 
@@ -177,21 +184,21 @@ A pixel's bi-temporal spectral state is modeled as a mathematical coordinate tra
 
 $$P_{\text{before}} = (NIR_{t_0}, SWIR1_{t_0}) \quad \text{and} \quad P_{\text{after}} = (NIR_{t_1}, SWIR1_{t_1})$$
 
-The corresponding **Change Vector** ($V$) is defined as:
+The corresponding **Change Vector ($\vec{V}$)** is defined as:
 
-$$V = \begin{bmatrix} \Delta NIR \\ \Delta SWIR1 \end{bmatrix} = \begin{bmatrix} NIR_{t_1} - NIR_{t_0} \\ SWIR1_{t_1} - SWIR1_{t_0} \end{bmatrix}$$
+$$\vec{V} = \begin{bmatrix} \Delta NIR \\ \Delta SWIR1 \end{bmatrix} = \begin{bmatrix} NIR_{t_1} - NIR_{t_0} \\ SWIR1_{t_1} - SWIR1_{t_0} \end{bmatrix}$$
 
-##### Change Vector Magnitude (∣$V$∣)
+##### Change Vector Magnitude ($|\vec{V}|$)
 
 The total geometric shift across spectral feature space is calculated using the Euclidean distance equation:
 
-$$|V| = \sqrt{(NIR_{t_1} - NIR_{t_0})^2 + (SWIR1_{t_1} - SWIR1_{t_0})^2}$$
+$$|\vec{V}| = \sqrt{(NIR_{t_1} - NIR_{t_0})^2 + (SWIR1_{t_1} - SWIR1_{t_0})^2}$$
 
 Higher values indicate intense land-cover modifications (e.g., rapid deforestation, urban clearings, or severe wildfire devastation), independent of the qualitative nature of the change.
 
 ##### Change Vector Directional Coding
 
-The discrete directional quadrant (1 through 4) indicates the path taken by the pixel trajectory across the spectral domain. These paths map directly to distinct qualitative environmental transformations:
+The discrete directional quadrant ($1$ through $4$) indicates the path taken by the pixel trajectory across the spectral domain. These paths map directly to distinct qualitative environmental transformations:
 
 ```
                   ▲ ΔSWIR1 (Moisture Decrease)
@@ -208,33 +215,31 @@ The discrete directional quadrant (1 through 4) indicates the path taken by the 
                   │
 ```
 
-- **Quadrant Code 1 ($ΔNIR<0$ and $ΔSWIR1<0$):** Simultaneous drop in structural biomass and liquid moisture absorption. This signature often represents intense fire events, vegetation clearings, or canopy die-back.
+- **Quadrant Code 1 ($\Delta NIR < 0 \text{ and } \Delta SWIR1 < 0$):** Simultaneous drop in structural biomass and liquid moisture absorption. This signature often represents intense fire events, vegetation clearings, or canopy die-back.
     
-- **Quadrant Code 2 ($ΔNIR>0$ and $ΔSWIR1<0$):** Increasing cell structures alongside active water-retention scaling. This confirms vegetation vigor enhancement, characteristic of reforestation, crop maturity, or canopy recovery.
+- **Quadrant Code 2 ($\Delta NIR > 0 \text{ and } \Delta SWIR1 < 0$):** Increasing cell structures alongside active water-retention scaling. This confirms vegetation vigor enhancement, characteristic of reforestation, crop maturity, or canopy recovery.
     
-- **Quadrant Code 3 ($ΔNIR<0$ and $ΔSWIR1>0$):** Biomass loss with rising shortwave reflection. This indicates clear canopy stripping accompanied by soil water saturation, revealing events like structural flooding, wetland expansion, or extensive irrigation.
+- **Quadrant Code 3 ($\Delta NIR < 0 \text{ and } \Delta SWIR1 > 0$):** Biomass loss with rising shortwave reflection. This indicates clear canopy stripping accompanied by soil water saturation, revealing events like structural flooding, wetland expansion, or extensive irrigation.
     
-- **Quadrant Code 4 ($ΔNIR>0$ and $ΔSWIR1>0$):** Co-registered elevation across both spectrum tracks. This typically points to complex land conversions, new urban concrete structures, or sensor illumination artifacts.
-
+- **Quadrant Code 4 ($\Delta NIR > 0 \text{ and } \Delta SWIR1 > 0$):** Co-registered elevation across both spectrum tracks. This typically points to complex land conversions, new urban concrete structures, or sensor illumination artifacts.
 
 #### Interface Architecture
 
 - **Constructor Method (`__init__`) Input Arguments:**
     
-    - `nir_path` (`Path`): Post-event ($t_1$​) $NIR$ band file path.
+    - `nir_path` (`Path`): Post-event ($t_1$) $NIR$ band file path.
         
-    - `swir1_path` (`Path`): Post-event ($t_1$​) $SWIR1$ band file path.
+    - `swir1_path` (`Path`): Post-event ($t_1$) $SWIR1$ band file path.
         
-    - `before_nir_path` (`Path`): Pre-event ($t_0$​) $NIR$ band file path.
+    - `before_nir_path` (`Path`): Pre-event ($t_0$) $NIR$ band file path.
         
-    - `before_swir1_path` (`Path`): Pre-event ($t_0$​) $SWIR1$ band file path.
+    - `before_swir1_path` (`Path`): Pre-event ($t_0$) $SWIR1$ band file path.
         
     - `selecte` (`Literal["magnitude", "direction"]`): Selector pointing target execution to compute numerical scalar distances or integer category labels.
     
-- **Return State (`process()`):** Returns a `numpy.ndarray` array containing floating-point Euclidean distances or integer categorical maps ($1≤x≤4$).
+- **Return State (`process()`):** Returns a `numpy.ndarray` array containing floating-point Euclidean distances or integer categorical maps ($1 \le x \le 4$).
 
 #### Execution Implementation
-
 
 ```Python
 from pathlib import Path
@@ -272,7 +277,7 @@ The system processes change tracking across two structural arithmetic options:
 
 $$\Delta_{\text{Reflectance}} = Band_{t_0} - Band_{t_1}$$
 
-This calculation preserves the original radiometric values of the scene. Positive results indicate a drop in surface reflection at $t_1$​ (e.g., vegetative harvesting), while negative results capture localized reflection gains (e.g., sediment deposits or building developments).
+This calculation preserves the original radiometric values of the scene. Positive results indicate a drop in surface reflection at $t_1$ (e.g., vegetative harvesting), while negative results capture localized reflection gains (e.g., sediment deposits or building developments).
 
 ##### Division Mode (`operation="divide"`)
 
@@ -282,25 +287,23 @@ The ratio transformation helps minimize terrain shadow effects and illumination 
 
 - A ratio value of $1.0$ indicates perfect stability across the bi-temporal window.
     
-- Ratios $>1.0$ reveal structural reflection losses at $t_1$​.
+- Ratios $> 1.0$ reveal structural reflection losses at $t_1$.
     
-- Ratios $<1.0$ show absolute gains in reflection over the same period.
+- Ratios $< 1.0$ show absolute gains in reflection over the same period.
 
 #### Interface Architecture
 
 - **Constructor Method (`__init__`) Input Arguments:**
     
-    - `nir_path` (`Path`): Post-event ($t_1$​) band file target location.
+    - `nir_path` (`Path`): Post-event ($t_1$) band file target location.
         
-    - `before_nir_path` (`Path`): Pre-event ($t_0$​) band file reference location.
+    - `before_nir_path` (`Path`): Pre-event ($t_0$) band file reference location.
         
     - `operation` (`Literal["subtract", "divide"]`): Algebraic operator selection.
     
 - **Return State (`process()`):** Returns a `numpy.ndarray` numerical array capturing pixel-by-pixel change deltas or ratios.
 
-
 #### Execution Implementation
-
 
 ```Python
 from pathlib import Path
@@ -326,22 +329,21 @@ linear_diff.execute(
 
 #### Scientific & Physical Objective
 
-`TimeCalculator` provides low-level debugging isolation and user-interface baseline extraction. It bypasses all change-detection operations to directly stream standardized, core array matrices from either $t_0$​ or $t_1$​.
+`TimeCalculator` provides low-level debugging isolation and user-interface baseline extraction. It bypasses all change-detection operations to directly stream standardized, core array matrices from either $t_0$ or $t_1$.
 
 #### Interface Architecture
 
 - **Constructor Method (`__init__`) Input Arguments:**
     
-    - `nir_path` (`Path`): Post-event ($t_1$​) $NIR$ band file path reference.
+    - `nir_path` (`Path`): Post-event ($t_1$) $NIR$ band file path reference.
         
-    - `before_nir_path` (`Path`): Pre-event ($t_0$​) $NIR$ band file path reference.
+    - `before_nir_path` (`Path`): Pre-event ($t_0$) $NIR$ band file path reference.
         
     - `time` (`Literal["before", "after"]`): Directing pointer selecting the temporal layer target.
     
 - **Return State (`process()`):** Returns a standardized floating-point `numpy.ndarray` array containing raw reflectance values from the selected timestamp.
 
 #### Execution Implementation
-
 
 ```Python
 from pathlib import Path
