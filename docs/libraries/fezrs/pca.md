@@ -1,10 +1,41 @@
-# PCA
-
+# Pca
 ## Module Overview
 
 The `pca` module implements a Principal Component Analysis (PCA) workflow designed for dimensionality reduction, spectral-spatial information compression, and uncorrelated feature extraction from multi-spectral satellite imagery. Satellite sensors capture surface reflectance across multiple overlapping spectral bands, which often results in high data redundancy and strong correlation between adjacent channels.
 
 This module unifies a six-band multi-spectral stack—typically comprising the visible spectrum (**Red, Green, Blue**), Near-Infrared (**NIR**), and Short-Wave Infrared (**SWIR1, SWIR2**)—and projects it into a new coordinate space. The resulting orthogonal axes, or **Principal Components (PCs)**, are ordered by the amount of total variance they explain, isolating dominant spatial patterns and suppressing high-frequency sensor noise.
+
+This mathematical inversion identifies the dominant spatial patterns that account for the most variability _across the band dimension_, generating coherent **eigenimages** that capture unique landscape characteristics.
+
+```
+       [6 Native Spatial Bands] (Red, Green, Blue, NIR, SWIR1, SWIR2)
+                  │
+                  ▼
+   ┌─────────────────────────────┐
+   │ 2D Array Flattening Block   │ ──► Each band reshaped to (1, N) vector
+   └──────────────┬──────────────┘
+                  │
+                  ▼
+   ┌─────────────────────────────┐
+   │ Matrix Construction ($X$)    │ ──► Dimensions: $\mathbb{R}^{6 \times N}$ ($m=6$ bands, $n=N$ pixels)
+   └──────────────┬──────────────┘
+                  │
+                  ▼
+   ┌─────────────────────────────┐
+   │ Broadcast Variable Centering│ ──► Subtract mean pixel brightness: $X_c = X - \bar{x}$
+   └──────────────┬──────────────┘
+                  │
+                  ▼
+   ┌─────────────────────────────┐
+   │  Singular Value Decomposition│ ──► $X_c = U \Sigma V^T$ (Avoids $N \times N$ Covariance Matrix)
+   └──────────────┬──────────────┘
+                  │
+        ┌─────────┴─────────┐
+        ▼                   ▼
+   [Left Singular Vectors] [Right Singular Vectors ($V^T$)]
+    Spectral Loadings       6 Spatial Eigenimages (PC1 - PC6)
+   ($U \in \mathbb{R}^{6 \times 6}$)       Shape: $(6, N) \to$ Reshaped to $(H, W)$
+```
 
 ## Comprehensive Mathematical Foundations
 
