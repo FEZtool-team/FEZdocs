@@ -84,11 +84,11 @@ Improve overall image contrast by uniformly distributing the pixel intensity val
 
 Histogram equalisation transforms the image so that the output histogram is approximately flat (uniform). The theory is based on the cumulative distribution function (CDF) of the pixel values.
 
-Let $p(r_k​)$ be the normalised histogram (probability) of intensity level $r_k$​ (with $k=0,1,…,L−1, L=256$ in the code). The cumulative probability is :
+Let $p(r_k)$ be the normalised histogram (probability) of intensity level $r_k$ (with $k=0,1,…,L-1, L=256$ in the code). The cumulative probability is :
 
 $$C(r_k) = \sum_{i=0}^k p(r_i)$$
 
-The equalised intensity $s_k​$ is obtained by scaling the CDF to the full range $[0,1]$ :
+The equalised intensity $s_k$ is obtained by scaling the CDF to the full range $[0,1]$ :
 
 $$s_k = C(r_k) = \sum_{i=0}^k p(r_i)$$
 
@@ -124,7 +124,7 @@ Apply **Contrast Limited Adaptive Histogram Equalisation (CLAHE)**, which improv
 
 CLAHE partitions the image into small tiles (by default 8×8) and computes the histogram equalisation mapping for each tile independently. To avoid amplifying noise, the contrast enhancement is limited by clipping the histogram at a specified **clip limit**.
 
-- For a tile of $M×M$ pixels and $N_{\text{bins}} = 256$, the average number of pixels per bin is $\bar{n} = \frac{M^2}{N_{\text{bins}}}$​.
+- For a tile of $M×M$ pixels and $N_{\text{bins}} = 256$, the average number of pixels per bin is $\bar{n} = \frac{M^2}{N_{\text{bins}}}$.
     
 - The **clip limit** `C` is defined as a multiple of $\bar{n}$ :
     
@@ -141,11 +141,11 @@ Mathematically, for each tile $t$, let $h_t(k)$ be the clipped histogram. Then t
 
 $$T_t(r_k) = \frac{1}{N_t} \sum_{i=0}^k h_t(i)$$
 
-where $N_t$​ is the total number of pixels in the tile after clipping and redistribution. For a pixel at location $(x,y)$, the final value is :
+where $N_t$ is the total number of pixels in the tile after clipping and redistribution. For a pixel at location $(x,y)$, the final value is :
 
 $$I_{\text{CLAHE}}(x, y) = \text{interpolate}(T_{t_1}, T_{t_2}, T_{t_3}, T_{t_4})$$
 
-where $t_{1..4}​$ are the four neighbouring tiles.
+where $t_{1..4}$ are the four neighbouring tiles.
 
 The result is an image with enhanced local contrast but with smooth transitions.
 
@@ -186,7 +186,7 @@ Gamma correction is a point transformation defined as :
 
 $$I_{\text{out}} = \text{gain} \cdot I_{\text{in}}^{\gamma}$$
 
-where $I_{in}$​ is the input pixel value in $[0,1]$. The gain factor (default 1) scales the output linearly.
+where $I_{in}$ is the input pixel value in $[0,1]$. The gain factor (default 1) scales the output linearly.
 
 The effect of $γ$ :
 
@@ -237,7 +237,7 @@ The logarithmic transformation implemented by `exposure.adjust_log` is :
 
 $$I_{\text{out}} = \text{gain} \cdot \log(1 + I_{\text{in}})$$
 
-where $I_{in}$​ is in $[0,1]$. Because $log⁡(1+0)=0$ and $log⁡(1+1)=log⁡2≈0.693$, the output range with default gain = 1 is $[0,0.693]$. The transformation stretches the lower values and compresses higher values, thereby enhancing details in shadows.
+where $I_{\text{in}}$ is in $[0,1]$. Because $\log(1+0)=0$ and $\log(1+1)=\log 2 \approx 0.693$, the output range with default gain = 1 is $[0,0.693]$. The transformation stretches the lower values and compresses higher values, thereby enhancing details in shadows.
 
 If `inverse = True`, the inverse transformation is applied :
 

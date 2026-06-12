@@ -156,7 +156,7 @@ calc.execute("./output", title="NBR After Event")
 Perform Change Vector Analysis (CVA) in the two‑band spectral space formed by NIR and SWIR1. For each pixel, the algorithm calculates both the **magnitude** of change (how much it changed) and the **direction** (what kind of change occurred).
 
 **Full Explanation of the Formulas**
-CVA models a pixel’s spectral evolution as a vector. If we plot the pre‑event pixel as a point ($NIR_{\text{before}}, SWIR1_{\text{before}}$​) and the post‑event pixel as ($NIR_{\text{after}}, SWIR1_{\text{after}}$), the change vector is :
+CVA models a pixel’s spectral evolution as a vector. If we plot the pre‑event pixel as a point ($NIR_{\text{before}}, SWIR1_{\text{before}}$) and the post‑event pixel as ($NIR_{\text{after}}, SWIR1_{\text{after}}$), the change vector is :
 
 $$\vec{V} = (NIR_{after} - NIR_{before}, SWIR1_{after} - SWIR1_{before})$$
 
@@ -176,6 +176,7 @@ $$\vec{V} = (NIR_{after} - NIR_{before}, SWIR1_{after} - SWIR1_{before})$$
 | increase   | decrease     | 2    | Vegetation increase + moisture decrease (healthy plant growth)                                       |
 | decrease   | increase     | 3    | Vegetation decrease + moisture increase (flood, soil saturation)                                     |
 | increase   | increase     | 4    | Both increase (possible atmospheric or sensor anomaly, or land‑cover conversion to brighter surface) |
+
 These codes are discrete and qualitative; they do not capture the precise angle of the vector. For a full quantitative CVA, one would compute the angular direction $θ=arctan2$ ($SWIR1_{\text{diff}}, NIR_{\text{diff}}$) and potentially define sectors for different change types. The current approach provides a simple and intuitive classification.
 	
 - **Physical interpretation of bands in CVA :**  

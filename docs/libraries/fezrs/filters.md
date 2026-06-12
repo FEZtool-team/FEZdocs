@@ -8,7 +8,7 @@ This module provides a set of **convolution‑based and statistical filters** fo
 
 | Class Name            | Function                   | Common Application                                           |
 | --------------------- | -------------------------- | ------------------------------------------------------------ |
-| `GuassianCalculator`  | Gaussian blur filter       | Remove white noise, smooth the image while preserving edges  |
+| `GaussianCalculator`  | Gaussian blur filter       | Remove white noise, smooth the image while preserving edges  |
 | `LaplacianCalculator` | Laplacian filter           | Edge detection and identification of rapid intensity changes |
 | `MeanCalculator`      | Mean / average blur filter | Simple, fast image smoothing                                 |
 | `MedianCalculator`    | Median blur filter         | Remove salt‑and‑pepper (impulse) noise                       |
@@ -28,9 +28,10 @@ The choice of kernel coefficients determines the filter’s behaviour – blurri
 
 ### 2. Detailed Documentation for Each Class
 
+<span id="gaussian-calculator"></span>
 <span id="guassian-calculator"></span>
 
-#### 2.1. `GuassianCalculator` – Gaussian Filter
+#### 2.1. `GaussianCalculator` - Gaussian Filter
 
 **Scientific objective**  
 Apply a low‑pass filter with a Gaussian‑shaped kernel to suppress high‑frequency noise while preserving edges better than a simple box‑average filter.
@@ -48,7 +49,7 @@ Apply a low‑pass filter with a Gaussian‑shaped kernel to suppress high‑fre
     
     $$\sigma = 0.3 \cdot \left( \frac{k \cdot size - 1}{2} - 1 \right) + 0.8$$
     
-    For a kernel size of 13×13, this yields an effective $σ≈0.3⋅(6−1)+0.8=2.3$. The kernel is then discretised and normalised so that the sum of all coefficients equals 1, preserving the image’s overall brightness.
+    For a kernel size of 13×13, this yields an effective $σ≈0.3⋅(6-1)+0.8=2.3$. The kernel is then discretised and normalised so that the sum of all coefficients equals 1, preserving the image’s overall brightness.
     
 - **Mathematical effect :**  
     The Gaussian filter is a weighted average where pixels closer to the centre contribute more. Because the weights decay smoothly according to the exponential function, the filter strongly attenuates high‑frequency components (noise) while causing less “ringing” artefacts and edge blurring than a uniform mean filter. In the frequency domain, the Gaussian kernel is itself a Gaussian, so convolution with the image corresponds to multiplication of the Fourier transforms – a pure low‑pass filtering with a smooth cut‑off.
@@ -67,9 +68,9 @@ _Note :_ The kernel size is hard‑coded to `(13, 13)` and the standard deviatio
 
 **Usage example :**
 ```python
-from fezrs.tools.filters import GuassianCalculator
+from fezrs.tools.filters import GaussianCalculator
 
-calc = GuassianCalculator(tif_path="path/to/band.tif")
+calc = GaussianCalculator(tif_path="path/to/band.tif")
 calc.execute(output_path="./output/", title="Gaussian Blur", dpi=300)
 ```
 
@@ -255,7 +256,7 @@ Compute an approximation of the gradient of the image intensity function. The So
     
     $$\nabla I = \begin{bmatrix} \frac{\partial I}{\partial x} & \frac{\partial I}{\partial y} \end{bmatrix}$$
     
-    The magnitude of the gradient $∥∇I∥$ indicates how rapidly the intensity changes at a point, thus highlighting edges. The Sobel operator convolves the image with two 3×3 kernels (for a kernel size of 3) to approximate the derivatives. For larger kernel sizes, the operator is extended to smooth the derivatives over a larger area.
+    The magnitude of the gradient $\lVert \nabla I \rVert$ indicates how rapidly the intensity changes at a point, thus highlighting edges. The Sobel operator convolves the image with two 3×3 kernels (for a kernel size of 3) to approximate the derivatives. For larger kernel sizes, the operator is extended to smooth the derivatives over a larger area.
     
     The standard Sobel kernels for $ksize=3$ are :
     
@@ -271,7 +272,7 @@ Compute an approximation of the gradient of the image intensity function. The So
     +1 & +2 & +1
     \end{bmatrix}$$
     
-    where $G_x$​ detects vertical edges, and $G_y$​ detects horizontal edges.
+    where $G_x$ detects vertical edges, and $G_y$ detects horizontal edges.
     
 - **Combined gradient in the code :**  
     The code uses `dx=1, dy=1`, which means both derivatives are computed and the output is the sum of the two gradient images (or more precisely, OpenCV’s `Sobel` with both `dx` and `dy` non‑zero returns the sum of the absolute values of the two directional derivatives if the `ddepth` is not floating‑point, or the sum of the derivatives if `ddepth` allows negative values). Here `ddepth=0` means the output has the same depth as the input (which is float after normalisation). The mixed derivative is not the true gradient magnitude but a reasonable approximation that detects edges in all orientations.
@@ -310,8 +311,8 @@ calc.execute(output_path="./output/", title="Sobel Edge Detection", colormap="gr
     
 2. **Input :** All classes receive a **single‑band** image (2D array). If a multi‑band TIF is loaded, `files_handler` must extract the appropriate band (the key `"tif"` is used).
     
-3. **Fixed kernel size in Gaussian and Mean :** Currently, `GuassianCalculator` and `MeanCalculator` use hard‑coded kernel sizes. Future versions could expose `kernel_size` as a constructor parameter for greater flexibility.
+3. **Fixed kernel size in Gaussian and Mean :** Currently, `GaussianCalculator` and `MeanCalculator` use hard‑coded kernel sizes. Future versions could expose `kernel_size` as a constructor parameter for greater flexibility.
     
-4. **Typo in class name :** The class `GuassianCalculator` contains a typographical error; the correct spelling is `GaussianCalculator`. The documentation should note this, but the code must be called with `GuassianCalculator` as implemented.
+4. **Class naming :** The FEZrs `dev` branch exposes the corrected class name `GaussianCalculator`.
     
 5. **Performance :** OpenCV filters are implemented in C and are highly optimised. Even for large remote sensing images (e.g., full Landsat scenes), processing is fast.

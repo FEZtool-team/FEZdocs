@@ -36,11 +36,11 @@ $$AFRI = (NIR - 0.66) \times \left( \frac{SWIR1}{NIR + 0.66 \times SWIR1} \right
 
 This formula can be broken down into two interacting components :
 
-1. **NIR offset term (NIR−0.66)(NIR−0.66):**  
+1. **NIR offset term (NIR-0.66)(NIR-0.66):**  
     In the normalised band space $[0,1]$, healthy green vegetation typically exhibits high NIR reflectance (well above 0.5) due to strong scattering by the leaf mesophyll, while SWIR1 reflectance is lower because of water absorption. The constant 0.66 acts as a threshold; pixels with $NIR<0.66$ (e.g., water, bare soil, urban surfaces) produce a negative or very small first factor, suppressing the index. Pixels with $NIR>0.66$ (dense vegetation) yield a positive contribution. The value 0.66 is an empirically derived reference level calibrated for typical forest reflectance ranges in NIR.
     
 2. **SWIR1 ratio term $\frac{SWIR1}{NIR + 0.66 \times SWIR1}$ :**  
-    This is a non‑linear ratio that modulates the NIR offset. For healthy vegetation, SWIR1 is considerably lower than NIR, so the ratio becomes small (approaching $\frac{low}{high + 0.66 \times low}$ $≈\text{low}$ value). The product of a positive $(NIR−0.66)$ and a small ratio still yields a moderate positive value. For non‑vegetated surfaces where SWIR1 is high and NIR is low, the ratio becomes larger while $(NIR−0.66)$ is negative, producing a strong negative or near‑zero output. Thus the AFRI effectively suppresses confusing signals from bright soils, water, and shadows.
+    This is a non‑linear ratio that modulates the NIR offset. For healthy vegetation, SWIR1 is considerably lower than NIR, so the ratio becomes small (approaching $\frac{low}{high + 0.66 \times low}$ $≈\text{low}$ value). The product of a positive $(NIR-0.66)$ and a small ratio still yields a moderate positive value. For non‑vegetated surfaces where SWIR1 is high and NIR is low, the ratio becomes larger while $(NIR-0.66)$ is negative, producing a strong negative or near‑zero output. Thus the AFRI effectively suppresses confusing signals from bright soils, water, and shadows.
 
 
 The output range in practice lies roughly between 0 and 1 for dense vegetation, with higher values indicating greater canopy density. Because the bands are normalised to $[0,1]$, the index is well‑suited for multi‑temporal comparisons without additional calibration.
@@ -75,7 +75,7 @@ $$BI = \frac{NIR - Green - Red}{NIR + Green + Red}$$
 
 The formulation is a normalised difference between the NIR band and the sum of the two visible bands (Green and Red). The physical basis is :
 
-- **Vegetation :** Green plants reflect moderately in Green, absorb strongly in Red (due to chlorophyll), and reflect strongly in NIR. Therefore, for vegetation, $\text{NIR}≫\text{Green}+\text{Red}$, leading to a large positive numerator and a positive denominator, resulting in a positive BI value. However, typical healthy vegetation actually yields a _negative_ BI when using the common definition (note : many published BI formulas are inverted). In this implementation, because the numerator is $\text{NIR}−(\text{Green}+\text{Red})$, dense vegetation with $\text{NIR}>\text{Green}+\text{Red}$ gives **positive** values, while bare soil, where $\text{NIR}≈\text{Green}≈\text{Red}$ (all relatively similar), yields values near zero. Bare soil can even give negative values if the visible bands exceed NIR. Urban areas (concrete, asphalt) often exhibit low NIR and higher visible reflectance, resulting in negative BI.
+- **Vegetation :** Green plants reflect moderately in Green, absorb strongly in Red (due to chlorophyll), and reflect strongly in NIR. Therefore, for vegetation, $\text{NIR}≫\text{Green}+\text{Red}$, leading to a large positive numerator and a positive denominator, resulting in a positive BI value. However, typical healthy vegetation actually yields a _negative_ BI when using the common definition (note : many published BI formulas are inverted). In this implementation, because the numerator is $\text{NIR}-(\text{Green}+\text{Red})$, dense vegetation with $\text{NIR}>\text{Green}+\text{Red}$ gives **positive** values, while bare soil, where $\text{NIR}≈\text{Green}≈\text{Red}$ (all relatively similar), yields values near zero. Bare soil can even give negative values if the visible bands exceed NIR. Urban areas (concrete, asphalt) often exhibit low NIR and higher visible reflectance, resulting in negative BI.
 
 
 Thus, **positive BI values indicate vegetation**, while **negative or near‑zero values indicate bare soil or urban surfaces**. The exact interpretation depends on the sensor and the region, but the index provides a continuous measure where lower (more negative) values correspond to a greater proportion of exposed soil or built‑up material.
@@ -90,7 +90,7 @@ The normalisation by the sum $\text{NIR}+\text{Green}+\text{Red}$ in the denomin
 |`red_path`|`Path`|Red band file|
 |`green_path`|`Path`|Green band file|
 
-**Range :** −1 to +1 (positive = vegetation, negative = bare soil/urban in this implementation)
+**Range :** -1 to +1 (positive = vegetation, negative = bare soil/urban in this implementation)
 
 ---
 
@@ -114,7 +114,7 @@ $$NDVI = \frac{NIR - Red}{NIR + Red}$$
 - **Clouds and snow :** Reflectance is high and similar in both bands, yielding NDVI close to 0 (though sometimes slightly negative).
     
 
-The normalised ratio structure $\frac{a-b}{a+b}$​ automatically compensates for multiplicative factors such as sun angle variation and atmospheric transmittance, as long as those factors affect both bands similarly. The index ranges from −1 to +1.
+The normalised ratio structure $\frac{a-b}{a+b}$ automatically compensates for multiplicative factors such as sun angle variation and atmospheric transmittance, as long as those factors affect both bands similarly. The index ranges from -1 to +1.
 
 In the code, the input bands are normalised to $[0,1]$ before computation, ensuring that NDVI values are consistent regardless of the sensor’s original dynamic range.
 
@@ -160,7 +160,7 @@ This index effectively separates water from land. It is also sensitive to the wa
 |`green_path`|`Path`|Green band file|
 |`nir_path`|`Path`|NIR band file|
 
-**Range :** −1 to +1 (positive = water; negative = vegetation/soil)
+**Range :** -1 to +1 (positive = water; negative = vegetation/soil)
 
 ---
 
@@ -183,7 +183,7 @@ $$SAVI =  \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red} + 0.5} \times 1
 
 - **Role of LL :** The additional term LL in the denominator reduces the sensitivity of the index to soil brightness. When vegetation is sparse, the soil background contributes significantly to the reflected signal. Without adjustment, NDVI can be artificially raised by bright soils. The factor LL moves the “soil line” to the origin in the NIR–Red feature space, making SAVI nearly insensitive to soil brightness variations.
     
-- **Multiplication by $1+L$ :** This scaling ensures that SAVI values remain comparable to NDVI range‑wise (roughly −1 to +1). For dense vegetation, SAVI is only slightly lower than NDVI; for sparse vegetation, SAVI is substantially lower, giving a more accurate measure of green cover.
+- **Multiplication by $1+L$ :** This scaling ensures that SAVI values remain comparable to NDVI range‑wise (roughly -1 to +1). For dense vegetation, SAVI is only slightly lower than NDVI; for sparse vegetation, SAVI is substantially lower, giving a more accurate measure of green cover.
 
 
 **Input parameters :**
@@ -220,7 +220,7 @@ This index helps to separate built‑up regions from surrounding vegetated areas
 | `nir_path`   | `Path` | NIR band file   |
 | `swir2_path` | `Path` | SWIR2 band file |
 
-**Range :** −1 to +1 (positive = urban, negative = vegetation)
+**Range :** -1 to +1 (positive = urban, negative = vegetation)
 
 ---
 

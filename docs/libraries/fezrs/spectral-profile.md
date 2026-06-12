@@ -36,7 +36,7 @@ The code then performs a specific operation on the band that appears at position
 
 $$I_{\log}(x, y) = \text{gain} \cdot \log(1 + I_{\text{original}}(x, y))$$
 
-Because all bands have been normalised to $[0,1]$, $I_{original}​∈[0,1]$. The output values lie in $[0,log2]≈[0,0.693]$. This non‑linear stretch enhances contrast in the darker parts of the image while compressing brighter regions.
+Because all bands have been normalised to $[0,1]$, $I_{\text{original}} \in [0,1]$. The output values lie in $[0,\log 2] \approx [0,0.693]$. This non-linear stretch enhances contrast in the darker parts of the image while compressing brighter regions.
 
 The result of this log adjustment is assigned to `self._output`, which becomes the **return value of `process()`** and, in the current buggy state, the image that is saved by `execute()`. This behaviour is **not** the intended spectral profile and is listed as a critical bug (see Section 3).
 
@@ -57,7 +57,7 @@ Two lists are populated :
 - `self.yaxis` : the corresponding mean values `μ` for each band, in the same order.
 
 
-These two lists contain the data points $(xi​,yi​)$ that will be plotted as a line graph.
+These two lists contain the data points $(x_i,y_i)$ that will be plotted as a line graph.
 
 **Step 5 : Plotting in `histogram_export` (currently misnamed)**
 
@@ -80,7 +80,7 @@ The `histogram_export` method (which, despite its name, actually creates the spe
 
 **Mathematical interpretation of the spectral profile plot**
 
-The resulting graph is a discrete function $f(band)=μ_{band}$​. The shape of the curve reveals the dominant spectral signature of the image :
+The resulting graph is a discrete function $f(\text{band})=\mu_{\text{band}}$. The shape of the curve reveals the dominant spectral signature of the image :
 
 - A peak in NIR with a dip in Red → vegetation.
     

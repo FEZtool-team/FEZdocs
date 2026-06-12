@@ -28,8 +28,9 @@ All bands are normalised to the range $[0,1]$ beforehand. The conversion impleme
 
 Given an RGB triplet $(R,G,B)$ with values in $[0,1]$, let :
 
-    $$V \leftarrow \max(R, G, B)$$
-    $$C \leftarrow V - \min(R, G, B)$$
+$$V \leftarrow \max(R, G, B)$$
+$$C \leftarrow V - \min(R, G, B)$$
+
 **Value (V)** is simply the maximum of the three colour channels :
 
 $$V = \max(R, G, B)$$
@@ -37,7 +38,6 @@ $$V = \max(R, G, B)$$
 It represents the brightness of the colour. In the false‑colour context, $V$ indicates the overall reflectance intensity in the combined bands – bright pixels correspond to high reflectance in at least one of the three input bands.
 
 **Saturation (S)** is defined as :
-
     $$S = 
     \begin{cases} 
     0, & \text{if } V = 0 \\

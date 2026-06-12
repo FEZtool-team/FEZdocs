@@ -42,7 +42,7 @@ Thus, for this analysis, we have $m=6$ **samples** (the spectral bands) and $n=N
 
 **Centering the data**
 
-Prior to decomposition, PCA subtracts the mean of each feature (pixel) across the six samples. Let $\bar{x}_j = \frac{1}{m} \sum_{i=1}^{m} X_{ij}$​ be the mean of pixel $j$. The centered matrix $X_c$​ is
+Prior to decomposition, PCA subtracts the mean of each feature (pixel) across the six samples. Let $\bar{x}_j = \frac{1}{m} \sum_{i=1}^{m} X_{ij}$ be the mean of pixel $j$. The centered matrix $X_c$ is
 
 $$X_c = X - \begin{bmatrix} \bar{x}_1 & \bar{x}_2 & \dots & \bar{x}_N \end{bmatrix}_{1 \times N} \quad (\text{broadcast over rows})$$
 
@@ -52,7 +52,7 @@ The covariance matrix of the features (pixels) is
 
 $$C = \frac{1}{m-1} X_c^T X_c \quad \in \mathbb{R}^{N \times N}$$
 
-Because $N$ (the number of pixels) is typically enormous, directly building and decomposing $C$ is computationally prohibitive. Instead, a **singular value decomposition (SVD)** of the centered matrix $X_c$​ is used :
+Because $N$ (the number of pixels) is typically enormous, directly building and decomposing $C$ is computationally prohibitive. Instead, a **singular value decomposition (SVD)** of the centered matrix $X_c$ is used :
 
 $$X_c = U \Sigma V^T,$$
 
@@ -62,11 +62,11 @@ where
 - $\Sigma \in \mathbb{R}^{6 \times 6}$ is diagonal with singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_6 \geq 0$,
 - $V \in \mathbb{R}^{N \times 6}$ contains the right singular vectors.
 
-The principal components are the **right singular vectors** $V$; the rows of $V^T$ (or equivalently the columns of $V$) are the eigenvectors of the $N×N$ covariance matrix. The diagonal elements of $Σ$ are related to the eigenvalues $λ_k$​ of the covariance matrix by $\lambda_k = \frac{\sigma_k^2}{m-1}$​​.
+The principal components are the **right singular vectors** $V$; the rows of $V^T$ (or equivalently the columns of $V$) are the eigenvectors of the $N×N$ covariance matrix. The diagonal elements of $Σ$ are related to the eigenvalues $λ_k$ of the covariance matrix by $\lambda_k = \frac{\sigma_k^2}{m-1}$.
 
 **Principal components and explained variance**
 
-The $k-th$ principal component vector (as stored in `pca.components_`) is the $k-th$ row of $V^T$ (a vector of length $N$). Its corresponding eigenvalue $λ_k$​ measures the amount of variance captured by that component. The fraction of total variance explained by component $k$ is
+The $k-th$ principal component vector (as stored in `pca.components_`) is the $k-th$ row of $V^T$ (a vector of length $N$). Its corresponding eigenvalue $λ_k$ measures the amount of variance captured by that component. The fraction of total variance explained by component $k$ is
 
 $$VE_k = \frac{\lambda_k}{\sum_{j=1}^6 \lambda_j} = \frac{\sigma_k^2}{\sum_{j=1}^6 \sigma_j^2}$$
 

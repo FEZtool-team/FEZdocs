@@ -28,7 +28,7 @@ The GLCM is a second‑order statistical method that captures the spatial relati
 
 **Mathematical Definition of the GLCM**
 
-Let an image $I$ have integer grey levels in the range {$0,1,…,G−1$}, where $G$ is the number of quantised grey levels (typically 256 for 8‑bit images; in the code, the image is cast to `uint8`, so $G=256$). For a given spatial offset defined by a displacement vector $d=(d_x​,d_y​)$, the **un‑normalised GLCM** is a square matrix $P$ of size $G×G$ whose element $P(i,j)$ is the count of pixel pairs with grey levels $i$ and $j$ separated by the vector $d$ :
+Let an image $I$ have integer grey levels in the range {$0,1,…,G-1$}, where $G$ is the number of quantised grey levels (typically 256 for 8‑bit images; in the code, the image is cast to `uint8`, so $G=256$). For a given spatial offset defined by a displacement vector $d=(d_x,d_y)$, the **un‑normalised GLCM** is a square matrix $P$ of size $G×G$ whose element $P(i,j)$ is the count of pixel pairs with grey levels $i$ and $j$ separated by the vector $d$ :
 
 $$P(i, j \mid d) = \sum_x \sum_y 
 \begin{cases} 
@@ -60,7 +60,7 @@ From the normalised symmetric GLCM $p(i,j)$, several scalar features can be comp
 
 $$\text{Contrast} = \sum_{i=0}^{G-1} \sum_{j=0}^{G-1} (i - j)^2 \cdot p(i, j)$$
 
-- **Meaning :** Contrast measures the local intensity variation. The squared difference $(i−j)^2$ acts as a weight that increases quadratically as the grey levels of neighbouring pixels diverge. Large values indicate strong local variation (rough texture, edges, heterogeneous surfaces). Smooth, uniform regions yield low contrast.
+- **Meaning :** Contrast measures the local intensity variation. The squared difference $(i-j)^2$ acts as a weight that increases quadratically as the grey levels of neighbouring pixels diverge. Large values indicate strong local variation (rough texture, edges, heterogeneous surfaces). Smooth, uniform regions yield low contrast.
     
 - **Remote sensing application :** Distinguishing urban areas (high contrast due to buildings and roads) from water or agricultural fields (low contrast).
 
@@ -71,7 +71,7 @@ $$\text{Contrast} = \sum_{i=0}^{G-1} \sum_{j=0}^{G-1} (i - j)^2 \cdot p(i, j)$$
 
 $$\text{Dissimilarity} =\sum_{i=0}^{G-1} \sum_{j=0}^{G-1} |i - j| \cdot p(i, j)$$
 
-- **Meaning :** Very similar to contrast, but uses the absolute difference $∣i−j∣$ instead of the squared difference. The linear weighting means that large grey‑level differences contribute less dominantly than in contrast, making dissimilarity a more balanced measure of texture roughness.
+- **Meaning :** Very similar to contrast, but uses the absolute difference $|i-j|$ instead of the squared difference. The linear weighting means that large grey‑level differences contribute less dominantly than in contrast, making dissimilarity a more balanced measure of texture roughness.
     
 - **Remote sensing application :** Separating rough (e.g., forest canopy) from smooth (e.g., calm water) textures when the dynamic range of grey levels is large.
 
@@ -82,7 +82,7 @@ $$\text{Dissimilarity} =\sum_{i=0}^{G-1} \sum_{j=0}^{G-1} |i - j| \cdot p(i, j)$
 
 $$\text{Homogeneity}=\sum_{i=0}^{G-1} \sum_{j=0}^{G-1} \frac{p(i,j)}{1 + (i - j)^2} $$
 
-- **Meaning :** Homogeneity quantifies the closeness of the distribution to the main diagonal of the GLCM. The weight $\frac{1}{1+(i-j)^2}$​ is large (close to 1) when $i≈j$ (neighbouring pixels have similar grey levels) and small when $i$ and $j$ differ strongly. Thus, homogeneous regions (e.g., water bodies, bare soil) yield high values, while textured regions (urban, forest) yield low values.
+- **Meaning :** Homogeneity quantifies the closeness of the distribution to the main diagonal of the GLCM. The weight $\frac{1}{1+(i-j)^2}$ is large (close to 1) when $i≈j$ (neighbouring pixels have similar grey levels) and small when $i$ and $j$ differ strongly. Thus, homogeneous regions (e.g., water bodies, bare soil) yield high values, while textured regions (urban, forest) yield low values.
     
 - **Remote sensing application :** Mapping uniform surfaces; detecting water bodies, sand dunes, or homogeneous crop fields.
 
@@ -198,9 +198,9 @@ calc.execute(
 | --------------- | ------------------------------------ | --------------------------------------------------------- | ----------------------------------------------- |
 | `contrast`      | $\sum (i - j)^2 p(i, j)$             | Weights large grey‑level differences strongly             | Edge detection, heterogeneous areas (urban)     |
 | `dissimilarity` | $\sum \|i - j\|p(i, j)$              | Linear weighting of differences; rougher than homogeneity | Distinguishing rough vs. smooth textures        |
-| `homogeneity`   | $\sum \frac{p(i,j)}{1 + (i - j)^2}​$ | High when pixel pairs are similar                         | Homogeneous areas (water, sand, uniform forest) |
+| `homogeneity`   | $\sum \frac{p(i,j)}{1 + (i - j)^2}$ | High when pixel pairs are similar                         | Homogeneous areas (water, sand, uniform forest) |
 | `ASM`           | $\sum p(i, j)^2$                     | Second‑order uniformity; high when texture is ordered     | Regular patterns (row crops, orchards)          |
-| `energy`        | $\sqrt{ASM}$​                        | Square root of ASM; similar interpretation                | Same as ASM, with different dynamic range       |
+| `energy`        | $\sqrt{ASM}$                        | Square root of ASM; similar interpretation                | Same as ASM, with different dynamic range       |
 | `correlation`   | Complex (see formula above)          | Linear dependence between neighbouring pixels             | Directional structures (faults, roads, dunes)   |
 
 ---

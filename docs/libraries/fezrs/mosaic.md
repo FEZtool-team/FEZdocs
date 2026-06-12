@@ -69,7 +69,7 @@ For every pixel, this affine allows computing its exact geographic footprint.
 
 **2. Determination of the output extent and pixel grid**
 
-When multiple images are merged, the output must cover the **union** of all input extents. For each input image $I_k$​ with bounding box ($x_{\min}^k, \; y_{\min}^k, \; x_{\max}^k, \; y_{\max}^k$​), the output bounding box is :
+When multiple images are merged, the output must cover the **union** of all input extents. For each input image $I_k$ with bounding box ($x_{\min}^k, \; y_{\min}^k, \; x_{\max}^k, \; y_{\max}^k$), the output bounding box is :
 
 $$x_{\text{min}}^{\text{out}} = \min_k(x_{\text{min}}^k), \quad y_{\text{min}}^{\text{out}} = \min_k(y_{\text{min}}^k)$$
 $$x_{max}^{out} = \max_k(x_{max}^k), \quad y_{max}^{out} = \max_k(y_{max}^k)$$

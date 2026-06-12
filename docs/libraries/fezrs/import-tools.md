@@ -32,14 +32,14 @@ High‑resolution satellite images (GeoEye, WorldView, etc.) are often distribut
     where $b$ is the band index and $bits$ is the radiometric resolution of the sensor (e.g., 8, 11, or 16 bits). This conversion is performed internally by `skimage.img_as_float` (or equivalent). After normalisation, the data type is `float64`, and the full dynamic range of the sensor is preserved linearly.
     
 - **Band extraction :**  
-    The normalised data cube has shape ($H,W,N_{bands}$​). The requested band at index `level` is extracted by simple array slicing :
+    The normalised data cube has shape ($H,W,N_{bands}$). The requested band at index `level` is extracted by simple array slicing :
     
     $$\text{output} = I_{\text{norm}}[:, :, \text{level]}$$
     
     This yields a 2D array of intensity values in $[0,1]$. No additional mathematical transformation is applied; the band is provided exactly as measured by the sensor, only scaled.
     
 - **Validation (`_validate`):**  
-    The number of bands $N_{bands}$​ is obtained from `I_{\text{norm}}.shape[2]`. The method checks that the requested `level` satisfies $0≤\text{level}<N_{bands}$​. If not, a `ValueError` is raised, preventing out‑of‑range access.
+    The number of bands $N_{bands}$ is obtained from $I_{\text{norm}}.\text{shape}[2]$. The method checks that the requested `level` satisfies $0 \leq \text{level} < N_{bands}$. If not, a `ValueError` is raised, preventing out‑of‑range access.
     
 
 **Input parameters (`__init__`) :**

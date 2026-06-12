@@ -28,22 +28,22 @@ K‑Means is an iterative, centroid‑based clustering method. Its mathematical 
 
 **Given :**
 
-- A set of $N$ data points (pixels) $x1​,x2​,…,xN$, where each point is a vector. In this module, because only one band is used, each $xi$​ is a scalar (the pixel value).
+- A set of $N$ data points (pixels) $x_1, x_2, \ldots, x_N$, where each point is a vector. In this module, because only one band is used, each $x_i$ is a scalar (the pixel value).
     
 - The desired number of clusters $K$.
 
 
 **Objective :**  
-Find a set of $K$ centroids $μ1​,μ2​,…,μK$​ and an assignment of each data point to exactly one cluster that minimises the **within‑cluster sum of squares (WCSS)**:
+Find a set of $K$ centroids $\mu_1, \mu_2, \ldots, \mu_K$ and an assignment of each data point to exactly one cluster that minimises the **within-cluster sum of squares (WCSS)**:
 
 $$J = \sum_{k=1}^K \sum_{\mathbf{x}_i \in C_k} \| \mathbf{x}_i - \mu_k \|^2$$
 
 where :
-- $Ck$ is the set of points assigned to cluster $k$,
+- $C_k$ is the set of points assigned to cluster $k$,
     
-- $μk​$ is the centroid (mean) of the points in $Ck​,$
+- $\mu_k$ is the centroid (mean) of the points in $C_k$,
     
-- $∥⋅∥$ denotes the Euclidean distance.
+- $\lVert \cdot \rVert$ denotes the Euclidean distance.
 
 
 In the one‑dimensional case, the Euclidean distance reduces to the absolute difference :
@@ -56,7 +56,7 @@ $$\|x_i - \mu_k\|^2 = (x_i - \mu_k)^2$$
     Choose $K$ initial centroids. This can be done randomly (as controlled by the `random_state` parameter) or via a more sophisticated method (scikit‑learn’s default is `k-means++`, which spreads initial centroids apart). The initial centroids are denoted $\mu_1^{(0)}, \ldots, \mu_K^{(0)}$
     
 2. **Assignment step (E‑step) :**  
-    For each data point $xi$​, assign it to the cluster whose centroid is nearest :
+    For each data point $x_i$, assign it to the cluster whose centroid is nearest :
 $$C_k^{(t)} = \left\{ x_i : \|x_i - \mu_k^{(t)}\|^2 \leq \|x_i - \mu_j^{(t)}\|^2 \text{ for all } j \neq k \right\}$$
 	
     Ties are broken arbitrarily.

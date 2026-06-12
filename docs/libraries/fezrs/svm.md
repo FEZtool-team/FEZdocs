@@ -36,11 +36,11 @@ Each pixel is represented by a feature vector of length 6 : its reflectance (or 
 
 $$x = [\text{Red, Green, Blue, NIR, SWIR1, SWIR2}]^T \in \mathbb{R}^6$$
 
-The training set consists of $N$ labelled examples $(xi​,yi​)$, where $y_i \in \{1, \ldots, K\}$ (with $K = \text{class\_number}$) is the class label manually assigned by the user.
+The training set consists of $N$ labelled examples $(x_i,y_i)$, where $y_i \in \{1, \ldots, K\}$ (with $K = \text{class\_number}$) is the class label manually assigned by the user.
 
 **2. The binary SVM – maximal margin classifier**
 
-Originally, SVM is a binary classifier. For two classes with labels encoded as $+1$ and $−1$, it seeks the hyperplane
+Originally, SVM is a binary classifier. For two classes with labels encoded as $+1$ and $-1$, it seeks the hyperplane
 
 $$w^T x + b = 0$$
 
@@ -52,11 +52,11 @@ subject to
 
 $$y_i(\mathbf{w}^\top \mathbf{x}_i + b) \geq 1 \quad \forall i$$
 
-The points lying exactly on the boundaries $y_i​(w^⊤x_i​+b)=1$ are the **support vectors**.
+The points lying exactly on the boundaries $y_i(\mathbf{w}^\top x_i+b)=1$ are the **support vectors**.
 
 **3. Soft‑margin SVM (C‑SVM)**
 
-When the data are not perfectly separable, slack variables $ξi​≥0$ are introduced to allow some misclassification :
+When the data are not perfectly separable, slack variables $\xi_i \geq 0$ are introduced to allow some misclassification :
 
 $$\min_{w,b,\xi} \frac{1}{2} \|w\|^2 + C \sum_{i=1}^N \xi_i$$
 
@@ -68,11 +68,11 @@ The parameter $C>0$ controls the trade‑off between a wide margin and the numbe
 
 **4. The kernel trick and the RBF kernel**
 
-For data that are not linearly separable in the original feature space, SVM can implicitly map the input vectors into a higher‑dimensional space via a kernel function $K(x_i​,x_j​)=ϕ(x_i​)^⊤ϕ(x_j​)$. The decision function then becomes
+For data that are not linearly separable in the original feature space, SVM can implicitly map the input vectors into a higher‑dimensional space via a kernel function $K(x_i,x_j)=\phi(x_i)^\top\phi(x_j)$. The decision function then becomes
 
 $$f(x) = \sum_{i \in SV} \alpha_i y_i K(x_i, x) + b$$
 
-where $α_i$​ are the Lagrange multipliers obtained from the dual problem.
+where $\alpha_i$ are the Lagrange multipliers obtained from the dual problem.
 
 The code uses the **Radial Basis Function (RBF)** kernel with `gamma='scale'` (the scikit‑learn default for SVC). The RBF kernel is defined as :
 
@@ -82,15 +82,15 @@ When `gamma='scale'`, the parameter is computed automatically as
 
 $$\gamma = \frac{1}{n_{\text{features}} \times \text{Var}(X)}$$
 
-where $n_{features}​=6$ and $Var(X)$ is the variance of the training data. This adaptive scaling ensures that the kernel’s sensitivity to distance is appropriate for the spread of the data.
+where $n_{\text{features}}=6$ and $\operatorname{Var}(X)$ is the variance of the training data. This adaptive scaling ensures that the kernel’s sensitivity to distance is appropriate for the spread of the data.
 
 **5. Multi‑class classification**
 
-While SVM is inherently binary, the code uses scikit‑learn’s `SVC` which handles multiple classes by a **one‑versus‑one** strategy : for $K$ classes, $K(K−1)/2$ binary classifiers are trained. Each classifier separates a pair of classes. A new pixel is assigned to the class that wins the most pairwise contests.
+While SVM is inherently binary, the code uses scikit‑learn’s `SVC` which handles multiple classes by a **one‑versus‑one** strategy : for $K$ classes, $K(K-1)/2$ binary classifiers are trained. Each classifier separates a pair of classes. A new pixel is assigned to the class that wins the most pairwise contests.
 
 **6. Application in the code**
 
-- The training data matrix $X$ has shape $(N_{train}​,6)$, where $N_{train}=class\_number×sample\_number$.
+- The training data matrix $X$ has shape $(N_{\text{train}},6)$, where $N_{\text{train}}=\text{class\_number}\times\text{sample\_number}$.
     
 - The label vector $Y$ is built by repeating the class numbers : class 1 repeated `sample_number` times, then class 2, etc.
     
@@ -114,7 +114,7 @@ pred = clf.predict(all_image_reshape)
 
 **7. Decision function and probability**
 
-For an individual pixel $x$, the class label $\hat{y}$​ is determined by the majority vote among the binary classifiers. The distance to the hyperplane (decision function value) can optionally be obtained, but the code currently returns only the discrete class labels.
+For an individual pixel $x$, the class label $\hat{y}$ is determined by the majority vote among the binary classifiers. The distance to the hyperplane (decision function value) can optionally be obtained, but the code currently returns only the discrete class labels.
 
 **Input parameters (`__init__`) :**
 
