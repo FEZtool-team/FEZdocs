@@ -1,5 +1,5 @@
 # Clustering
-## Module Overview
+## Overview
 
 The `clustering` module delivers unsupervised machine learning architectures designed for data-driven satellite image partitioning, thematic land-cover mapping, and unsupervised image segmentation. By isolating structural patterns directly from multi-spectral digital numbers ($DN$) without relying on prior training samples or ground-truth regions of interest ($ROI$), this module provides automated spatial categorization baseline maps.
 

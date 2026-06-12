@@ -1,5 +1,5 @@
 # Change Detection
-## Module Overview
+## Overview
 
 The `change_detection` module provides a comprehensive suite of remote sensing tools designed to isolate, classify, and quantify temporal surface dynamics using bi-temporal satellite imagery. By analyzing multi-spectral imagery captured across two distinct temporal windows—typically classified as **Pre-Event ($t_0$, Before)** and **Post-Event ($t_1$, After)**—these tools facilitate automated monitoring of ecological disturbances such as wildfire burn severity, flood inundation, land-cover conversions, and vegetation degradation.
 

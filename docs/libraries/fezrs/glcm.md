@@ -1,5 +1,5 @@
 # GLCM (Gray Level Co-occurrence Matrix)
-## Module Overview
+## Overview
 
 The `glcm` module implements second-order spatial statistical architectures designed to quantify, analyze, and map land-surface textures using the **Gray-Level Co-occurrence Matrix (GLCM)** and Haralick texture features. In multi-spectral remote sensing, relying solely on spectral reflectance parameters often fails to differentiate structurally distinct land covers that share overlapping spectral signatures—such as separating complex urban environments from highly reflective bare soils, or uniform natural grasslands from industrial row-crop agriculture.
 

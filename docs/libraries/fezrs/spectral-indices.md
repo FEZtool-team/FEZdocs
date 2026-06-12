@@ -1,5 +1,5 @@
 # Spectral Indices
-## Module Overview
+## Overview
 
 The `indices` module provides algebraic raster calculation pipelines designed to extract quantitative geophysical properties from multi-spectral satellite imagery. Every target surface feature exhibits a unique **spectral signature**—a characteristic pattern of electromagnetic radiation reflection and absorption across different wavelengths.
 

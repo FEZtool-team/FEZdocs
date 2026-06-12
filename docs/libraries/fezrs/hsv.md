@@ -1,5 +1,5 @@
 # HSV
-## Module Overview
+## Overview
 
 The `hsv` module provides advanced color-space transformation tools that map multi-spectral satellite band configurations from the standard **RGB (Red, Green, Blue)** additive color model to the **HSV (Hue, Saturation, Value)** cylindrical coordinate system.
 

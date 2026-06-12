@@ -1,5 +1,5 @@
 # Image Enhancement
-## Module Overview
+## Overview
 
 The `enhancement` module delivers a comprehensive suite of linear and non-linear radiometric transformation pipelines designed to optimize the visual quality, structural contrast, and dynamic range of satellite imagery. These processing steps adjust the distribution of digital numbers ($DN$) across the available bit-depth spectrum, maximizing feature interpretability for human analysts or standardizing input spaces for downstream machine learning and deep learning computer vision architectures.
 

@@ -1,5 +1,5 @@
-# SVM
-## Module Overview
+# SVM (Support Vector Machine)
+## Overview
 
 The `svm` module implements a Supervised Support Vector Machine (SVM) classification architecture designed for land-cover mapping and thematic feature extraction from multi-spectral satellite imagery. The module bridges machine learning workflows and interactive geospatial data engineering by providing an integrated graphical interface for manual training site selection.
 

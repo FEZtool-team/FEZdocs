@@ -1,5 +1,5 @@
 # Spectral Profile
-## Module Overview
+## Overview
 
 The `spectral_profile` module computes and visualizes the average spectral signatures across multi-spectral satellite image collections. In remote sensing, a **spectral profile** (or spectral signature) charts how a target surface reflects electromagnetic radiation across different wavelengths. This signature serves as a diagnostic fingerprint for characterizing dominant surface materials and evaluating radiometric variations between land-cover classes.
 

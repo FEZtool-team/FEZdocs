@@ -1,5 +1,5 @@
 # Filters
-## Module Overview
+## Overview
 
 The `filters` module provides a comprehensive suite of digital image processing operators designed for radiometric enhancement, high-frequency noise suppression, and directional/isotropic structural feature extraction. These tools serve as critical pre-processing components within remote sensing workflows, stabilizing spatial matrices prior to executing higher-level analytical pipelines such as automated lineament mapping, land-cover classification, texture metrics estimation, and object-based image analysis (OBIA).
 

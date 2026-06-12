@@ -1,5 +1,5 @@
 # Import Tools
-## Module Overview
+## Overview
 
 The `import_tools` module acts as the definitive data ingestion gateway and multi-spectral parsing core for the FEZrs processing engine. High-resolution commercial sensors (e.g., GeoEye, WorldView) and public science constellations (e.g., Landsat 8/9, Sentinel-2) employ fundamentally different data distribution architectures: commercial payloads typically bundle overlapping spectral channels into unified, multi-band raster arrays, whereas public science programs distribute independent spectral bands as discrete, single-channel raster products.
 
