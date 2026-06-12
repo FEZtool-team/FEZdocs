@@ -1,318 +1,361 @@
 # Filters
+## Module Overview
 
-### 1. Introduction
+The `filters` module provides a comprehensive suite of digital image processing operators designed for radiometric enhancement, high-frequency noise suppression, and directional/isotropic structural feature extraction. These tools serve as critical pre-processing components within remote sensing workflows, stabilizing spatial matrices prior to executing higher-level analytical pipelines such as automated lineament mapping, land-cover classification, texture metrics estimation, and object-based image analysis (OBIA).
 
-This module provides a set of **convolution‑based and statistical filters** for enhancing, denoising, and extracting features from single‑band images. These tools are essential pre‑processing steps for many advanced remote sensing analyses such as edge detection, texture analysis, and image segmentation.
+```
+                    fezrs.base.BaseTool [Base Architecture]
+                              │
+                              ▼
+        ┌─────────────────────┴─────────────────────┐
+        │        fezrs.tools.filters Module         │
+        └─────────────────────┬─────────────────────┘
+                              │
+            ┌─────────────────┴─────────────────┐
+            ▼                                   ▼
+[Linear Shift-Invariant Filters]     [Non-Linear Statistical Filters]
+├─ MeanCalculator                    └─ MedianCalculator
+├─ GuassianCalculator
+├─ SobelCalculator
+└─ LaplacianCalculator
+```
 
-**Existing Classes :**
+## Mathematical Foundations of Spatial Filtering
 
-| Class Name            | Function                   | Common Application                                           |
-| --------------------- | -------------------------- | ------------------------------------------------------------ |
-| `GaussianCalculator`  | Gaussian blur filter       | Remove white noise, smooth the image while preserving edges  |
-| `LaplacianCalculator` | Laplacian filter           | Edge detection and identification of rapid intensity changes |
-| `MeanCalculator`      | Mean / average blur filter | Simple, fast image smoothing                                 |
-| `MedianCalculator`    | Median blur filter         | Remove salt‑and‑pepper (impulse) noise                       |
-| `SobelCalculator`     | Sobel filter               | Horizontal and vertical edge detection                       |
+### The Discrete Convolution Operation
 
-**Fundamentals of spatial filtering – the convolution operation**
-
-All filters in this module (except the median filter) are linear and shift‑invariant, meaning they operate on the image through **discrete convolution** with a small matrix called a **kernel**. For a 2D image $I$ and a kernel $K$ of size $(2a+1)×(2a+1)$, the filtered image $I$′ at pixel $(x,y)$ is given by
+Linear filters operate across spatial domains via discrete 2D spatial convolution. Given a continuous discrete image matrix $I$ and a localized bounding window known as a kernel $K$ of odd-integer dimensional extents $(2a+1) \times (2a+1)$, the mathematically modified output coordinate $I'(x, y)$ is calculated via:
 
 $$I'(x, y) = \sum_{i=-a}^{a} \sum_{j=-a}^{a} K(i, j) \cdot I(x + i, y + j)$$
 
-The kernel slides across every pixel of the image; at each position, the dot product of the kernel weights and the overlapping pixel values is computed and assigned to the output pixel. The **border** pixels, where the kernel extends beyond the image, are handled by OpenCV’s default border extrapolation (usually reflection or replication).
+The kernel matrix systematically slides across every coordinate index of the target raster. At each coordinate position, the scalar dot product of the kernel weights and the overlapping pixel values is computed, updating the center pixel's value.
 
-The choice of kernel coefficients determines the filter’s behaviour – blurring, sharpening, edge detection, etc. In the following sub‑sections the specific kernel and its mathematical properties are detailed for each class.
-
----
-
-### 2. Detailed Documentation for Each Class
-
-<span id="gaussian-calculator"></span>
-<span id="guassian-calculator"></span>
-
-#### 2.1. `GaussianCalculator` - Gaussian Filter
-
-**Scientific objective**  
-Apply a low‑pass filter with a Gaussian‑shaped kernel to suppress high‑frequency noise while preserving edges better than a simple box‑average filter.
-
-**Full Explanation of the Formula**
-
-- **Gaussian kernel definition :**  
-    The 2D isotropic Gaussian kernel has the form
-    
-    $$G(x, y) = \frac{1}{2\pi\sigma^2} \exp\left(-\frac{x^2 + y^2}{2\sigma^2}\right)$$
-    
-    where $σ$ is the standard deviation controlling the width of the bell curve. A larger $σ$ produces stronger smoothing.
-    
-- In OpenCV’s `GaussianBlur`, the user specifies the kernel size (width, height) – which must be odd and positive – and the standard deviation in the X and Y directions. If the standard deviation is set to 0 (as in this code), it is automatically computed from the kernel size as
-    
-    $$\sigma = 0.3 \cdot \left( \frac{k \cdot size - 1}{2} - 1 \right) + 0.8$$
-    
-    For a kernel size of 13×13, this yields an effective $σ≈0.3⋅(6-1)+0.8=2.3$. The kernel is then discretised and normalised so that the sum of all coefficients equals 1, preserving the image’s overall brightness.
-    
-- **Mathematical effect :**  
-    The Gaussian filter is a weighted average where pixels closer to the centre contribute more. Because the weights decay smoothly according to the exponential function, the filter strongly attenuates high‑frequency components (noise) while causing less “ringing” artefacts and edge blurring than a uniform mean filter. In the frequency domain, the Gaussian kernel is itself a Gaussian, so convolution with the image corresponds to multiplication of the Fourier transforms – a pure low‑pass filtering with a smooth cut‑off.
-    
-- **Typical remote sensing use :**  
-    Pre‑processing step before edge detection or segmentation, or to reduce sensor noise while maintaining the geometric fidelity of features.
-
-
-**Input parameters (`__init__`) :**
-
-|Parameter|Type|Description|
-|---|---|---|
-|`tif_path`|`str` or `Path`|Path to the single‑band input image (GeoTIFF or supported format)|
-
-_Note :_ The kernel size is hard‑coded to `(13, 13)` and the standard deviation is automatically determined.
-
-**Usage example :**
-```python
-from fezrs.tools.filters import GaussianCalculator
-
-calc = GaussianCalculator(tif_path="path/to/band.tif")
-calc.execute(output_path="./output/", title="Gaussian Blur", dpi=300)
+```
+       Overlapping Image Window                    Convolution Kernel
+     ┌──────────┬──────────┬──────────┐       ┌──────────┬──────────┬──────────┐
+     │I(x-1,y-1)│ I(x,y-1) │I(x+1,y-1)│       │  K(-1,-1)│  K(0,-1) │  K(1,-1) │
+     ├──────────┼──────────┼──────────┤       ├──────────┼──────────┼──────────┤
+     │ I(x-1,y) │  I(x,y)  │ I(x+1,y) │   X   │  K(-1,0) │  K(0,0)  │  K(1,0)  │
+     ├──────────┼──────────┼──────────┤       ├──────────┼──────────┼──────────┤
+     │I(x-1,y+1)│ I(x,y+1) │I(x+1,y+1)│       │  K(-1,1) │  K(0,1)  │  K(1,1)  │
+     └──────────┴──────────┴──────────┘       └──────────┴──────────┴──────────┘
+                                      │
+                                      ▼
+             Sum of Element-by-Element Products = Target Pixel I'(x,y)
 ```
 
----
+### Boundary Condition Management
 
-<span id="laplacian-calculator"></span>
+When the spatial kernel kernel overlaps the outer perimeter of an image, its dimensions extend beyond the raster bounds. The module delegates boundary extrapolation to OpenCV's optimized infrastructure using reflection padding (`BORDER_REFLECT_101` topology by default):
 
-#### 2.2. `LaplacianCalculator` – Laplacian Filter
+$$I(-x, y) = I(x, y) \quad \text{and} \quad I(Width + x, y) = I(Width - x, y)$$
 
-**Scientific objective**  
-Compute the second spatial derivative of the image intensity to highlight regions of rapid intensity change (edges). The Laplacian detects edges irrespective of their orientation.
+This approach minimizes edge artifacts and prevents artificial gradient boundaries along the outer edges of the computed raster matrix.
 
-**Full Explanation of the Formula**
+## Comprehensive Class Specifications
 
-- **Laplacian operator :**  
-    For a 2D continuous function $f(x,y)$, the Laplacian is defined as the sum of the second partial derivatives :
-    
-    $$\nabla^2 f = \frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2}$$
-    
-    In the discrete domain, the Laplacian is approximated by a convolution kernel. The OpenCV `Laplacian` function uses a kernel derived from central finite differences. A common 3×3 approximation (which OpenCV scales depending on `ksize`) is :
-    
-    $$K_L = 
-    \begin{bmatrix}
-    0 & 1 & 0 \\
-    1 & -4 & 1 \\
-    0 & 1 & 0
-    \end{bmatrix}$$
-    
-    or the “eight‑neighbour” variant :
-    
-    $$\begin{bmatrix}
-    1 & 1 & 1 \\
-    1 & -8 & 1 \\
-    1 & 1 & 1
-    \end{bmatrix}$$
-    
-    For larger kernel sizes, OpenCV extends the approximation to incorporate more neighbours, but the principle remains: the centre weight is negative and the surrounding weights are positive, summing to zero so that homogeneous regions produce zero output.
-    
-- **Interpretation of the output :**
-    
-    - Zero crossings in the Laplacian correspond to edges.
-        
-    - The magnitude of the response indicates the sharpness of the intensity transition.
-        
-    - Because the Laplacian can output both positive and negative values, the code uses `-1` as the output data depth (`ddepth=-1`), meaning the output has the same depth as the input. For visualisation, it is common to take the absolute value to show all edges as bright features.
-    
-- **Edge detection mechanism :**  
-    In a region of constant intensity, the second derivative is zero. Near an edge, the intensity changes abruptly, so the first derivative has a peak and the second derivative crosses zero. The Laplacian therefore marks both the location and the steepness of edges.
-    
-- **Parameter `kernel_size` :**  
-    Must be positive and odd (e.g., 1, 3, 5, 7). A kernel size of 1 corresponds to a very simple discrete approximation. Larger kernels smooth the image somewhat before computing derivatives, making the edge detection less sensitive to noise.
-    
+### GuassianCalculator` — Isotropic Low-Pass Smoothing
 
-**Input parameters :**
+#### Scientific & Physical Objective
 
-| Parameter     | Type            | Description                                                  |
-| ------------- | --------------- | ------------------------------------------------------------ |
-| `tif_path`    | `str` or `Path` | Path to the single‑band image                                |
-| `kernel_size` | `int`           | Kernel size; must be a positive odd integer (e.g., 3, 5, 7). |
+The algorithmic goal of `GuassianCalculator` is to apply an isotropic low-pass filter to remove continuous high-frequency background noise (such as thermal electronic sensor noise or atmospheric scattering). This smoothing step helps maintain structural boundaries and edge locations more effectively than a standard unweighted box-average filter.
 
-**Validation :** The `_validate` method checks that `kernel_size` is an integer, positive, and odd.
+#### Theoretical Foundation & Mathematical Formulations
 
-**Usage example :**
-```python
-calc = LaplacianCalculator(tif_path="band.tif", kernel_size=5)
-calc.execute(output_path="./output/", title="Laplacian Edge Detection")
+The spatial distribution weights of the filter are governed by the 2D isotropic Gaussian distribution equation:
+
+$$G(x, y) = \frac{1}{2\pi\sigma^2} \exp\left(-\frac{x^2 + y^2}{2\sigma^2}\right)$$
+
+Where:
+
+- $x$ and $y$ represent the absolute spatial coordinate offsets from the center point of the kernel matrix.
+    
+- $\sigma$ represents the standard deviation of the Gaussian distribution, controlling the width of the bell curve and governing the level of spatial smoothing.
+
+Within this calculator's initialization pipeline, the kernel window size is fixed at an odd boundary constraint of $13 \times 13$ pixels. By setting the explicit standard deviation parameter to zero ($\sigma = 0$), the underlying engine automatically calculates the optimal standard deviation using the following linear function of kernel width:
+
+$$\sigma = 0.3 \cdot \left( \frac{\text{Kernel Size} - 1}{2} - 1 \right) + 0.8$$
+
+For a hardcoded $13 \times 13$ window footprint, this optimization resolves to:
+
+$$\sigma = 0.3 \cdot \left( \frac{13 - 1}{2} - 1 \right) + 0.8 = 0.3 \cdot (6 - 1) + 0.8 = 2.3$$
+
+The weights within the resulting discrete kernel matrix are normalized to ensure their sum equals exactly one:
+
+$$\sum_{i=-a}^{a} \sum_{j=-a}^{a} K(i, j) = 1.0$$
+
+This normalization step preserves the global radiometric scale and average brightness of the input scene.
+
+#### Frequency Domain Behavior
+
+In the frequency domain, the Fourier transform of a Gaussian kernel is itself a Gaussian distribution. This ensures smooth attenuation of high-frequency components without introducing the phase-reversal or "ringing" artifacts typical of sharp cut-off box-car filters.
+
+#### Interface Architecture
+
+- **Constructor Method (`__init__`) Input Arguments:**
+    
+    - `tif_path` (`str` | `Path`): File location pointing to the single-band target raster.
+    
+- **Return State (`process()`):** Returns a smoothed 2D `numpy.ndarray` floating-point array with high-frequency noise suppressed.
+
+#### Operational Implementation
+
+```Python
+from pathlib import Path
+from fezrs.tools.filters import GuassianCalculator
+
+# Initialize low-pass isotropic Gaussian engine
+gaussian_blur = GuassianCalculator(
+    tif_path=Path("./data/Landsat8_Band5.tif")
+)
+
+# Execute smoothing pipeline and export result
+gaussian_blur.execute(
+    output_path="./exports/filtered/",
+    title="Isotropic Gaussian Low-Pass Blur",
+    dpi=500
+)
 ```
 
----
+### `LaplacianCalculator` — Isotropic High-Pass Edge Detection
 
-<span id="mean-calculator"></span>
+#### Scientific & Physical Objective
 
-#### 2.3. `MeanCalculator` – Mean (Average) Filter
+The primary objective of `LaplacianCalculator` is to compute the second-order spatial derivative of an image. This highlights high-frequency spatial transitions and isolates edge networks across all orientations.
 
-**Scientific objective**  
-Perform a simple uniform averaging over a square neighbourhood to blur the image and reduce noise. It is the simplest linear smoothing filter.
+#### Theoretical Foundation & Mathematical Formulations
 
-**Full Explanation of the Formula**
+For a continuous 2D intensity function $f(x, y)$, the Laplacian operator ($\nabla^2$) is defined as the sum of the unmixed second partial spatial derivatives:
 
-- **Mean filter kernel :**  
-    The mean (or box) filter replaces each pixel with the arithmetic mean of all pixels inside a kernel of size $k×k$. The kernel coefficients are all equal:
-    
-    $$K_{mean}(i,j) = \frac{1}{k^2} \quad \text{for all } i, j$$
-    
-    For the fixed kernel size used in the code ($9×9$), the kernel is a 9×9 matrix with each entry = $1/81$.
-    
-- **Mathematical operation :**  
-    If $W$ denotes the set of pixel indices in the window of size $k×k$ centred at $(x,y)$,
-    
-    $$I'(x, y) = \frac{1}{k^2} \sum_{(u, v) \in W} I(u, v)$$
-    
-    This is equivalent to convolution with the constant kernel.
-    
-- **Properties :**
-    
-    - The mean filter is a low‑pass filter : it averages out rapid variations (noise) but also blurs edges.
-        
-    - It is separable, meaning it can be implemented efficiently as two consecutive 1D convolutions (horizontal then vertical).
-        
-    - It minimises the variance of the output under Gaussian noise, but is poor for impulse noise (salt‑and‑pepper) because a single outlier can pull the mean significantly.
-    
-- **In remote sensing :**  
-    Quick pre‑smoothing before computing simple indices, or as a baseline for comparing more sophisticated filters.
+$$\nabla^2 f = \frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2}$$
 
+In the discrete pixel domain, this second-order derivative is approximated using finite central differences. For a standard $3 \times 3$ spatial window, the finite difference approximation resolves to the following default structural matrix kernel:
 
-**Input parameters :**
+$$K_{L3} = \begin{bmatrix} 0 & 1 & 0 \\ 1 & -4 & 1 \\ 0 & 1 & 0 \end{bmatrix}$$
 
-| Parameter  | Type            | Description                   |
-| ---------- | --------------- | ----------------------------- |
-| `tif_path` | `str` or `Path` | Path to the single‑band image |
+Or it can be configured as the more comprehensive eight-neighbor Laplacian variant:
 
-_Note :_ Kernel size is fixed to `(9, 9)` in the current code.
+$$K_{L8} = \begin{bmatrix} 1 & 1 & 1 \\ 1 & -8 & 1 \\ 1 & 1 & 1 \end{bmatrix}$$
 
-**Usage example :**
-```python
-calc = MeanCalculator(tif_path="band.tif")
-calc.execute(output_path="./output/", title="Mean/Average Filter")
+Notice that the sum of all coefficients in these Laplacian kernels equals exactly zero:
+
+$$\sum K_{L} = 0$$
+
+Consequently, when the kernel processes homogeneous areas with uniform pixel intensities, the output evaluates to zero. In regions with sharp intensity shifts, the second-order derivative produces a strong response.
+
+```
+      Intensity Profile                        First Derivative                         Second Derivative (Laplacian)
+      
+          ┌─────────                           │      ▲                                      ▲    
+          │                                    │      │                                 ─────┼─────
+          │                                    │      │                                      │    ▼
+   ───────┘                             ───────┴──────┴──────                         ───────┴──────
+   [Step Edge Transition]                   [Gradient Peak]                              [Zero-Crossing Edge Point]
 ```
 
----
+#### Analytical Target Interpretation
 
-<span id="median-calculator"></span>
+- **Zero-Crossings:** The exact location of a structural edge occurs where the Laplacian signal crosses zero.
+    
+- **Peak Magnitude:** The amplitude of the response is proportional to the sharpness and steepness of the spatial intensity transition.
 
-#### 2.4. `MedianCalculator` – Median Filter
+To preserve negative gradient responses without truncation, the pipeline sets the destination data depth to match the input layer (`ddepth=-1`).
 
-**Scientific objective**  
-Replace each pixel with the median value of its neighbourhood. This non‑linear filter is exceptionally good at eliminating **salt‑and‑pepper (impulse) noise** while preserving edges.
+#### Interface Architecture
 
-**Full Explanation of the Formula**
-
-- **Median operation :**  
-    For a window of size $k×k$ centred at $(x,y)$, collect all pixel values into a list, sort them, and pick the middle element :
+- **Constructor Method (`__init__`) Input Arguments:**
     
-    $$I'(x, y) = \text{median} \{I(u, v) \mid (u, v) \in W \}$$
-    
-    The kernel size in the code is user‑defined and must be an odd integer (e.g., 3, 5, 7). With `ksize=5`, the window contains 25 pixels.
-    
-- **Why it works :**  
-    Isolated noise pixels (e.g., dead pixels or transmission errors) have extreme values (very bright or very dark). Because the median ignores the magnitude of outliers, they are completely removed as long as they occupy less than half of the window. At the same time, genuine edges – where many pixels on one side have similar high or low values – are preserved because the median jumps abruptly only when the majority of pixels in the window change.
-    
-- **Mathematical properties :**
-    
-    - The median filter is **non‑linear**, so it cannot be represented as a convolution.
+    - `tif_path` (`str` | `Path`): File location pointing to the single-band target raster.
         
-    - It is **edge‑preserving** in the sense that it does not blur across edges.
-        
-    - Repeated application of the median filter eventually produces a root image that remains unchanged under further filtering.
-        
-    - The computational cost is higher than a mean filter because sorting is required per pixel; OpenCV’s implementation uses histogram‑based optimisations for speed.
+    - `kernel_size` (`int`): Bounding odd integer dimension parameter (e.g., $3, 5, 7$).
     
-- **Remote sensing relevance :**  
-    Removal of impulse noise from sensor artefacts or atmospheric scattering, without degrading the sharpness of roads, field boundaries, and other high‑contrast structures.
+- **Return State (`process()`):** Returns a 2D `numpy.ndarray` array capturing high-pass isotropic second-derivative edge structures.
 
+#### Operational Implementation
 
-**Input parameters :**
+```Python
+from pathlib import Path
+from fezrs.tools.filters import LaplacianCalculator
 
-|Parameter|Type|Description|
-|---|---|---|
-|`tif_path`|`str` or `Path`|Path to the single‑band image|
-|`kernel_size`|`int`|Kernel size; must be a positive odd integer.|
+# Initialize second-derivative isotropic edge detector
+laplacian_edge = LaplacianCalculator(
+    tif_path=Path("./data/Geom_Features.tif"),
+    kernel_size=5
+)
 
-**Validation :** The `_validate` method checks the type and parity of `kernel_size`.
-
-**Usage example :**
-```python
-calc = MedianCalculator(tif_path="noisy_band.tif", kernel_size=5)
-calc.execute(output_path="./output/", title="Median Filter Denoising")
+# Run process and save sharp edge boundaries
+laplacian_edge.execute(
+    output_path="./exports/filtered/",
+    title="Laplacian Isotropic Edge Detection",
+    colormap="gray",
+    dpi=500
+)
 ```
 
----
+### MeanCalculator` — Uniform Neighborhood Smoothing
 
-<span id="sobel-calculator"></span>
+#### Scientific & Physical Objective
 
-#### 2.5. `SobelCalculator` – Sobel Filter
+`MeanCalculator` acts as a fast, localized low-pass filter that smooths spatial variance by averaging pixel intensities within a uniform neighborhood window.
 
-**Scientific objective**  
-Compute an approximation of the gradient of the image intensity function. The Sobel operator highlights edges by combining the spatial derivatives in the horizontal (x) and vertical (y) directions.
+#### Theoretical Foundation & Mathematical Formulations
 
-**Full Explanation of the Formula**
+The mean filter replaces the center pixel value with the unweighted arithmetic mean of all digital numbers enclosed within a localized window $W$ of dimensions $k \times k$. The corresponding convolution kernel assigns an equal, uniform weight to all coefficient positions:
 
-- **Gradient and the Sobel operator :**  
-    The gradient of an image $I(x,y)$ is the vector :
-    
-    $$\nabla I = \begin{bmatrix} \frac{\partial I}{\partial x} & \frac{\partial I}{\partial y} \end{bmatrix}$$
-    
-    The magnitude of the gradient $\lVert \nabla I \rVert$ indicates how rapidly the intensity changes at a point, thus highlighting edges. The Sobel operator convolves the image with two 3×3 kernels (for a kernel size of 3) to approximate the derivatives. For larger kernel sizes, the operator is extended to smooth the derivatives over a larger area.
-    
-    The standard Sobel kernels for $ksize=3$ are :
-    
-    $$G_x = 
-    \begin{bmatrix}
-    -1 & 0 & +1 \\
-    -2 & 0 & +2 \\
-    -1 & 0 & +1
-    \end{bmatrix}, \quad G_y = 
-    \begin{bmatrix}
-    -1 & -2 & -1 \\
-    0 & 0 & 0 \\
-    +1 & +2 & +1
-    \end{bmatrix}$$
-    
-    where $G_x$ detects vertical edges, and $G_y$ detects horizontal edges.
-    
-- **Combined gradient in the code :**  
-    The code uses `dx=1, dy=1`, which means both derivatives are computed and the output is the sum of the two gradient images (or more precisely, OpenCV’s `Sobel` with both `dx` and `dy` non‑zero returns the sum of the absolute values of the two directional derivatives if the `ddepth` is not floating‑point, or the sum of the derivatives if `ddepth` allows negative values). Here `ddepth=0` means the output has the same depth as the input (which is float after normalisation). The mixed derivative is not the true gradient magnitude but a reasonable approximation that detects edges in all orientations.
-    
-- **Mathematical meaning :**  
-    For each pixel :
-    
-    $$\text{output} \approx \left| \frac{\partial I}{\partial x} \right| + \left| \frac{\partial I}{\partial y} \right| \quad \text{or} \quad \left| \frac{\partial I}{\partial x} \right| + \left| \frac{\partial I}{\partial y} \right|$$
-    
-    Edge pixels yield large output values; flat regions yield values near zero. Because the Sobel kernels incorporate smoothing (the central column/row has higher weights), the operator is less sensitive to noise than a simple central difference.
-    
-- **Edge detection application :**  
-    The resulting image shows bright lines at the locations of edges. It is a first‑order derivative filter, so edges appear as ridges. Typical post‑processing includes thresholding the gradient magnitude to obtain a binary edge map.
-    
+$$K_{\text{mean}}(i, j) = \frac{1}{k^2} \quad \forall \quad i, j \in W$$
 
-**Input parameters :**
+Within this module's implementation, the spatial footprint is fixed at a $9 \times 9$ pixel layout. This creates an unweighted box-filter kernel where each individual entry is defined as:
 
-| Parameter     | Type            | Description                                                        |
-| ------------- | --------------- | ------------------------------------------------------------------ |
-| `tif_path`    | `str` or `Path` | Path to the single‑band image                                      |
-| `kernel_size` | `int`           | Sobel kernel size; must be a positive odd integer (e.g., 3, 5, 7). |
+$$K_{\text{mean}} = \frac{1}{81}$$
 
-_Note :_ The current code uses `dx=1, dy=1`, which combines horizontal and vertical derivatives. For directional edge detection, `dx=1, dy=0` or `dx=0, dy=1` could be used.
+The discrete spatial operation for each coordinate center point evaluates to:
 
-**Usage example :**
-```python
-calc = SobelCalculator(tif_path="band.tif", kernel_size=3)
-calc.execute(output_path="./output/", title="Sobel Edge Detection", colormap="gray")
+$$I'(x, y) = \frac{1}{81} \sum_{(u, v) \in W} I(u, v)$$
+
+#### Analytical Trade-Offs
+
+While the mean filter effectively minimizes random Gaussian noise variance across uniform regions, its unweighted spatial averaging blurs valid structural lineaments and high-frequency boundaries. Additionally, it is highly sensitive to outlier values, meaning impulse noise (such as salt-and-pepper pixels) can significantly distort the local mean.
+
+#### Interface Architecture
+
+- **Constructor Method (`__init__`) Input Arguments:**
+    
+    - `tif_path` (`str` | `Path`): File location pointing to the single-band target raster.
+    
+- **Return State (`process()`):** Returns a uniformly smoothed low-pass 2D `numpy.ndarray`.
+
+
+#### Operational Implementation
+
+```Python
+from pathlib import Path
+from fezrs.tools.filters import MeanCalculator
+
+# Initialize uniform box-car low-pass filter
+mean_blur = MeanCalculator(
+    tif_path=Path("./data/Radiometric_Input.tif")
+)
+
+# Export the averaged image matrix
+mean_blur.execute(
+    output_path="./exports/filtered/",
+    title="Uniform Box-Car Mean Filter",
+    dpi=500
+)
 ```
 
----
+### MedianCalculator` — Rank-Order Non-Linear Denoising
 
-### 3. Common Technical Notes
+#### Scientific & Physical Objective
 
-1. **Dependency :** All these tools depend on the **OpenCV‑Python** (`cv2`) library. This library must be listed in `requirements.txt`.
+`MedianCalculator` is a non-linear, rank-order statistical filter designed to eliminate impulse noise (salt-and-pepper artifacts) while preserving sharp structural boundaries and edge transitions.
+
+#### Theoretical Foundation & Mathematical Formulations
+
+Unlike linear convolutional filters, the median filter does not use a weighted scalar dot product. Instead, it analyzes the neighborhood window $W$ of size $k \times k$ centered at coordinates $(x, y)$, extracts all raw pixel values, sorts them in ascending numerical order, and assigns the exact middle value to the target pixel:
+
+$$I'(x, y) = \text{median} \left\{ I(u, v) \mid (u, v) \in W \right\}$$
+
+For a user-defined kernel size of $5$ ($k=5$), the localized window contains 25 independent pixels. The values are ordered sequentially, and the 13th element is selected as the median output.
+
+```
+       1D Sorted Rank List
+       ┌────┬────┬────┬──────────────────┬────┬────┬──── Dinoised Output
+       │ 12 │ 14 │ 15 │ ...  [ 74 ] ...  │ 98 │ 99 │255 ──► Center Pixel = 74
+       └────┴────┴────┴──────────────────┴────┴────┴────
+                               ▲
+                    Exact 50th Percentile Rank
+```
+
+#### Impulse Noise Mitigation Mechanics
+
+Extreme anomalous outliers caused by transmission loss or sensor calibration errors manifest as maximum or minimum values (e.g., $0$ or $255$). Because the sorting operation places these anomalies at the extreme ends of the ranked array, they are excluded from the selection process.
+
+As long as the noise artifacts occupy less than half of the total window area ($< 50\%$ spatial density), they are completely filtered out. Concurrently, valid high-contrast step edges are preserved without blurring because the median shift tracks the structural boundary once it covers the majority of pixels within the sliding window.
+
+#### Interface Architecture
+
+- **Constructor Method (`__init__`) Input Arguments:**
     
-2. **Input :** All classes receive a **single‑band** image (2D array). If a multi‑band TIF is loaded, `files_handler` must extract the appropriate band (the key `"tif"` is used).
+    - `tif_path` (`str` | `Path`): File location pointing to the single-band target raster.
+        
+    - `kernel_size` (`int`): Bounding odd integer dimension parameter (e.g., $3, 5, 7$).
     
-3. **Fixed kernel size in Gaussian and Mean :** Currently, `GaussianCalculator` and `MeanCalculator` use hard‑coded kernel sizes. Future versions could expose `kernel_size` as a constructor parameter for greater flexibility.
+- **Return State (`process()`):** Returns an impulse-denoised, edge-preserving 2D `numpy.ndarray`.
+
+#### Operational Implementation
+
+```Python
+from pathlib import Path
+from fezrs.tools.filters import MedianCalculator
+
+# Initialize rank-order non-linear denoising engine
+median_denoise = MedianCalculator(
+    tif_path=Path("./data/Impulse_Noise_Band.tif"),
+    kernel_size=5
+)
+
+# Execute denoising process and export result
+median_denoise.execute(
+    output_path="./exports/filtered/",
+    title="Rank-Order Median Edge-Preserving Denoise",
+    dpi=500
+)
+```
+
+### `SobelCalculator` — First-Order Directional Gradient Estimation
+
+#### Scientific & Physical Objective
+
+`SobelCalculator` computes a first-order directional spatial derivative to approximate the intensity gradient across an image matrix, emphasizing structural lineaments and edge boundaries.
+
+#### Theoretical Foundation & Mathematical Formulations
+
+The spatial intensity gradient of a continuous image surface $I$ is defined as a 2D vector field pointing in the direction of maximum intensity change:
+
+$$\nabla I = \left[ \frac{\partial I}{\partial x}, \frac{\partial I}{\partial y} \right]^T = [G_x, G_y]^T$$
+
+To evaluate these directional changes, the Sobel operator applies two separate $3 \times 3$ convolutional kernels for horizontal ($G_x$) and vertical ($G_y$) derivative approximations:
+
+$$G_x = \begin{bmatrix} -1 & 0 & +1 \\ -2 & 0 & +2 \\ -1 & 0 & +1 \end{bmatrix} \quad \text{and} \quad G_y = \begin{bmatrix} -1 & -2 & -1 \\ 0 & 0 & 0 \\ +1 & +2 & +1 \end{bmatrix}$$
+
+The $G_x$ kernel isolates vertical edge structures by measuring intensity differences across columns, while the $G_y$ kernel captures horizontal features by measuring changes across rows.
+
+In this implementation, the configuration uses concurrent directional tracking (`dx=1`, `dy=1`). The total edge magnitude approximation combines both directional gradient arrays:
+
+$$\text{Output} \approx |G_x| + |G_y|$$
+
+#### Noise Mitigation Layout
+
+The Sobel kernel design incorporates a localized smoothing mechanism perpendicular to the derivative direction (for example, the center row/column weights are scaled by a factor of 2). This localized averaging makes the Sobel operator less sensitive to high-frequency pixel noise than simple central difference operators.
+
+#### Interface Architecture
+
+- **Constructor Method (`__init__`) Input Arguments:**
     
-4. **Class naming :** The FEZrs `dev` branch exposes the corrected class name `GaussianCalculator`.
+    - `tif_path` (`str` | `Path`): File location pointing to the single-band target raster.
+        
+    - `kernel_size` (`int`): Bounding odd integer dimension parameter (must be $3, 5, \text{or } 7$).
     
-5. **Performance :** OpenCV filters are implemented in C and are highly optimised. Even for large remote sensing images (e.g., full Landsat scenes), processing is fast.
+- **Return State (`process()`):** Returns a 2D `numpy.ndarray` gradient magnitude map highlighting structural edge ridges.
+
+#### Operational Implementation
+
+```Python
+from pathlib import Path
+from fezrs.tools.filters import SobelCalculator
+
+# Initialize first-order directional gradient engine
+sobel_gradient = SobelCalculator(
+    tif_path=Path("./data/Topography_DEM.tif"),
+    kernel_size=3
+)
+
+# Execute gradient extraction and save result
+sobel_gradient.execute(
+    output_path="./exports/filtered/",
+    title="Sobel First-Order Gradient Magnitude Map",
+    colormap="magma",
+    dpi=500
+)
+```

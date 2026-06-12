@@ -1,196 +1,193 @@
 # Mosaic
+## Overview
 
-### 1. Introduction
+The `mosaic` module provides scalable, coordinate-aligned image-merging architectures designed to consolidate multiple discrete satellite imagery tiles into a single georeferenced master mosaic. In regional or country-scale remote sensing, a single satellite pass rarely covers the entire target study area. Analyses instead require combining multiple overlapping image swaths or structural tiles.
 
-This module provides the ability to **merge multiple satellite images** (with georeferencing) into a single image in a unified coordinate system. The output is a single GeoTIFF file that can serve as input for any other FEZrs tool, enabling seamless regional or large‑area analyses.
+This module resolves these spatial divisions by calculating structural bounding extents, establishing unified coordinate spaces, and mapping independent pixel grids into a seamless, unified mosaic tensor. The resulting file preserves full metadata transparency, enabling immediate downstream feature engineering across the expanded study area.
 
-**Existing Classes :**
-
-|Class Name|Application|
-|---|---|
-|`MosaicCalculator`|Merges multiple GeoTIFF images (that share the same CRS) into a single mosaicked raster.|
-
-**Important note regarding `__init__.py`:** 
-
-The current `__init__.py` exports `BaseTool` by mistake. For the module to work correctly, it must be changed to:
-```python
-from .mosaic_calculator import MosaicCalculator
 ```
-	
----
+                  [Input Raster Files Path List]
+                  (e.g., tile_01.tif, tile_02.tif)
+                                 │
+                                 ▼
+                     ┌──────────────────────┐
+                     │   MosaicCalculator   │
+                     └───────────┬───────────┘
+                                 │
+                                 ▼
+                     ┌──────────────────────┐
+                     │  rasterio.merge Core │
+                     └───────────┬───────────┘
+                                 │
+         ┌───────────────────────┴───────────────────────┐
+         ▼                                               ▼
+ [Spatial Extent Union]                        [Grid Overlap Resolution]
+ Calculates absolute geographic bounding box     Evaluates pixel decision rule:
+ via coordinate transform tracking.             $output(x, y) = I_{k^*}(x, y)$
+                                 │                               │
+                                 └───────────────┬───────────────┘
+                                                 │
+                                                 ▼
+                                     ┌───────────────────────┐
+                                     │ File Output Lifecycle │
+                                     └───────────┬───────────┘
+                                                 │
+                        ┌────────────────────────┴────────────────────────┐
+                        ▼                                                 ▼
+             [Fully Georeferenced GeoTIFF]                        [Visual PNG Preview]
+             Saved to `self._output` for chaining                Auto-named via `Mosaic_` + UUID
+```
 
-<span id="mosaic-calculator"></span>
+## Comprehensive Class Specification: `MosaicCalculator`
 
-### 2. `MosaicCalculator` – Image Mosaicking
+### Scientific and Mathematical Objective
 
-#### 2.1 Scientific Objective
+The objective of `MosaicCalculator` is to combine multiple georeferenced raster layers that share a common Coordinate Reference System (CRS) into a single, continuous, spatial data array. This pipeline standardizes structural pixel boundaries across different satellite tracks and scene footprints, eliminating artificial layout boundaries across large-scale geographic regions.
 
-Create a continuous, seamless image from several separate scenes that together cover a larger geographic area. This process is essential for regional analyses, the production of wall‑to‑wall maps, and the removal of artificial boundaries between adjacent satellite swaths.
+### Algorithmic Processing Mechanics and Coordinate Transformations
 
-#### 2.2 Full Explanation of the Mosaicking Algorithm and Coordinate Transformations
+Mosaicking multi-spectral imagery requires matching different pixel spaces to an identical spatial grid. The module uses `rasterio.merge.merge` to perform these non-linear coordinate and tensor alignments.
 
-Mosaicking in the geospatial domain is more than just pasting images side by side; it requires precise alignment of every pixel to a common coordinate reference system (CRS) and a unified pixel grid. The `MosaicCalculator` uses `rasterio.merge.merge` to perform this task. The underlying mathematics are detailed below.
+#### Affine Georeferencing Framework
 
-**1. Affine georeferencing of each input image**
+Every input GeoTIFF file includes a 2D affine transformation matrix that maps internal pixel coordinates (expressed as a row $r$ and column $c$) to continuous real-world map projection coordinates (such as UTM easting $x$ and northing $y$):
 
-Each input GeoTIFF is accompanied by an **affine transformation matrix** that maps pixel coordinates (row $r$, column $c$) to real‑world coordinates (e.g., UTM easting $x$, northing $y$) :
+$$\begin{bmatrix} x \\ y \\ 1 \end{bmatrix} = \begin{bmatrix} a & b & c \\ d & e & f \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} c \\ r \\ 1 \end{bmatrix}$$
 
-$$\begin{bmatrix}
-x \\
-y \\
-1
-\end{bmatrix}
-=
-\begin{bmatrix}
-a & b & c \\
-d & e & f \\
-0 & 0 & 1
-\end{bmatrix}
-\begin{bmatrix}
-c \\
-r \\
-1
-\end{bmatrix}$$
+Where:
 
-where :
-
-- $a$ = pixel width (size in $x$ direction),
+- $a = \Delta x = \text{pixel width}$ (spatial resolution in the horizontal direction).
     
-- $e$ = pixel height (usually negative for north‑up images, so e<0e<0),
+- $e = \Delta y = \text{pixel height}$ (typically negative for standard north-up geographic configurations, where $e < 0$).
     
-- $b,d$ = rotation/shear terms (zero for north‑up images),
+- $b, d = \text{rotation and shear coefficients}$ (evaluate to exactly $0.0$ for traditional north-up alignment).
     
-- $c$ = $x$ coordinate of the centre of the upper‑left pixel,
+- $c = x_{\text{origin}}$ (absolute spatial $x$-coordinate matching the center of the upper-left pixel).
     
-- $f$ = $y$ coordinate of the centre of the upper‑left pixel.
+- $f = y_{\text{origin}}$ (absolute spatial $y$-coordinate matching the center of the upper-left pixel).
 
+This matrix lets the transformation engine calculate the exact geographic footprint of every pixel in each input image.
 
-For every pixel, this affine allows computing its exact geographic footprint.
+#### Determining Output Bounds and Pixel Grids
 
-**2. Determination of the output extent and pixel grid**
+The spatial boundaries of the final mosaic are computed by calculating the geographic union of all input image extents. For a collection of input images where each image $I_k$ defines a bounding box $(x_{\min}^k, y_{\min}^k, x_{\max}^k, y_{\max}^k)$, the global bounding parameters for the output mosaic are calculated as:
 
-When multiple images are merged, the output must cover the **union** of all input extents. For each input image $I_k$ with bounding box ($x_{\min}^k, \; y_{\min}^k, \; x_{\max}^k, \; y_{\max}^k$), the output bounding box is :
+$$x_{\text{min}}^{\text{out}} = \min_k\left(x_{\text{min}}^k\right), \quad y_{\text{min}}^{\text{out}} = \min_k\left(y_{\text{min}}^k\right)$$
 
-$$x_{\text{min}}^{\text{out}} = \min_k(x_{\text{min}}^k), \quad y_{\text{min}}^{\text{out}} = \min_k(y_{\text{min}}^k)$$
-$$x_{max}^{out} = \max_k(x_{max}^k), \quad y_{max}^{out} = \max_k(y_{max}^k)$$
-The output pixel resolution is normally taken from the first image in the list (the `merge` function retains the georeferencing parameters of the first dataset by default). The output affine transform is then constructed such that :
+$$x_{\text{max}}^{\text{out}} = \max_k\left(x_{\text{max}}^k\right), \quad y_{\text{max}}^{\text{out}} = \max_k\left(y_{\text{max}}^k\right)$$
+
+By default, the pixel resolution and orientation parameters are copied from the first image in the input file list ($I_1$). The output affine transform matrix is then constructed using these baseline parameters:
 
 $$a^{\text{out}} = a^1, \quad e^{\text{out}} = e^1, \quad b^{\text{out}} = b^1, \quad d^{\text{out}} = d^1$$
-$$c^{\text{out}} = x_{min}^{\text{out}} + \frac{a_{\text{out}}^{\text{out}}}{2}, \quad f^{\text{out}} = y_{max}^{\text{out}} - \frac{|e_{\text{out}}^{\text{out}}|}{2}$$
-(assuming $e$ is negative; the exact corner handling follows GDAL conventions). The output raster dimensions (width WoutWout, height HoutHout) are then :
 
-$$W^{out} = \left| \frac{x_{max}^{out} - x_{min}^{out}}{a_{out}} \right|, \quad H^{out} = \left| \frac{y_{max}^{out} - y_{min}^{out}}{e_{out}} \right|$$
+$$c^{\text{out}} = x_{\text{min}}^{\text{out}} + \frac{a^{\text{out}}}{2}, \quad f^{\text{out}} = y_{\text{max}}^{\text{out}} - \frac{|e^{\text{out}}|}{2}$$
 
-**3. Placing input pixels onto the output grid**
+This calculation handles upper-left grid corner positioning in compliance with standard GDAL geographic conventions. The final grid dimensions of the output raster (Width $W^{\text{out}}$, Height $H^{\text{out}}$) are calculated as:
 
-For each input image, `rasterio.merge` computes, for every output pixel ($c^{out},r^{out}$), its corresponding geographic coordinates using the output affine, then applies the **inverse affine** of the input image to find the source pixel coordinates :
+$$W^{\text{out}} = \left| \frac{x_{\text{max}}^{\text{out}} - x_{\text{min}}^{\text{out}}}{a^{\text{out}}} \right|, \quad H^{\text{out}} = \left| \frac{y_{\text{max}}^{\text{out}} - y_{\text{min}}^{\text{out}}}{e^{\text{out}}} \right|$$
 
-$$\begin{bmatrix}
-c_{in} \\
-r_{in}
-\end{bmatrix}
-= \text{Affine}_{in}^{-1}
-\left( \text{Affine}_{out}
-\begin{bmatrix}
-c_{out} \\
-r_{out} \\
-1
-\end{bmatrix} \right)
-$$
+#### Mapping Pixels onto the Output Grid
 
-If the computed source coordinates fall within the valid extent of the input image, the pixel value is read (with nearest‑neighbour interpolation by default, unless a resampling method is specified) and written to the output.
+For each coordinate cell $(c^{\text{out}}, r^{\text{out}})$ in the destination array, the merging engine projects the pixel's location back into the coordinate space of the source input image. This inverse projection applies the input image's inverse affine matrix ($\text{Affine}_{\text{in}}^{-1}$) to the output geographic transform coordinates:
 
-**4. Handling overlapping areas**
+$$\begin{bmatrix} c_{\text{in}} \\ r_{\text{in}} \end{bmatrix} = \text{Affine}_{\text{in}}^{-1} \left( \text{Affine}_{\text{out}} \begin{bmatrix} c_{\text{out}} \\ r_{\text{out}} \\ 1 \end{bmatrix} \right)$$
 
-In regions where two or more input images overlap, a decision rule must be applied. The code calls `merge` **without** a `method` argument, which means the default behaviour is **“first”**: the pixel value from the first dataset in the list that covers that location is used. Subsequent overlapping pixels are ignored.
+If the calculated source coordinate $(c_{\text{in}}, r_{\text{in}})$ falls within the valid boundaries of the input image, the engine samples the corresponding pixel value (using nearest-neighbor interpolation by default) and writes it to the destination array.
 
-Formally, the algorithm iterates over the input images in the given order; for each output pixel location, the first image that has a valid (non‑nodata) pixel at that position supplies the value. This is equivalent to :
+#### Handling Overlapping Regions
 
-$$output(x, y) = I_{k^*}(x, y) \quad \text{where } k^* = \min\{k \mid I_k \text{ is valid at } (x, y)\}$$
+When multiple input images overlap the same geographic area, the module applies a strict priority rule to determine the final pixel value. Because the core `merge` execution statement does not specify an alternative composition method, it defaults to the **"first"** strategy.
 
-Alternative merging methods (e.g., taking the minimum, maximum, mean, or a colour‑balancing blend) can be enabled by passing the `method` parameter to `merge`. Future versions of FEZrs could expose this choice.
+```
+                          Overlap Region Profile
+                    ┌──────────────────────────────┐
+                    │ Image Tile 1 (Priority Index)│
+                    │   ┌──────────────────────────┼──────────────┐
+                    │   │  Resolved Output Pixel   │              │
+                    │   │  Matches Tile 1 Value    │              │
+                    └───┼──────────────────────────┘              │
+                        │ Image Tile 2 (Ignored Overlap Overrides)│
+                        └─────────────────────────────────────────┘
+```
 
-**5. Metadata finalization**
+The engine evaluates input files in the order they appear in the provided file list. For each output pixel location, it selects the value from the first image in the list that contains valid data (non-nodata values) at those coordinates:
 
-After the pixel arrays are assembled, the metadata dictionary is updated with :
+$$\text{Output}(x, y) = I_{k^*}(x, y) \quad \text{where } k^* = \min\left\{k \mid I_k \text{ is valid at } (x, y)\right\}$$
 
-- `driver` : `"GTiff"` (GeoTIFF),
+Any data from subsequent overlapping layers is ignored at that specific location.
+
+#### Modifying Metadata Configurations
+
+Once pixel value mapping is complete, the engine updates the metadata dictionary to reflect the properties of the new dataset:
+
+- `driver`: Enforces `"GTiff"` (GeoTIFF Specification Standard).
     
-- `height` and `width` : computed as above,
+- `height`, `width`: Set to the calculated global grid dimensions ($H^{\text{out}}, W^{\text{out}}$).
     
-- `transform` : the new output affine matrix,
+- `transform`: Updates to the newly calculated output affine transform matrix.
     
-- `crs` : taken from the first input image (all inputs _must_ share this CRS; otherwise `merge` reprojects on‑the‑fly, which may introduce undesired resampling).
+- `crs`: Copied from the first input image in the file list. All input datasets should share this identical CRS to prevent reprojection errors or alignment offsets during processing.
 
+### Interface Specifications
 
-The resulting `mimg` array has shape `(bands, H, W)`, and the metadata allows direct writing to a new GeoTIFF file with full georeferencing.
+#### Constructor Method Input Arguments (`__init__`)
 
-**Input parameters (`__init__`) :**
+- `tif_paths` (`list[str | Path]`): A list of absolute file paths to the source GeoTIFF files to be combined.
 
-|Parameter|Type|Description|
-|---|---|---|
-|`tif_paths`|`List[str or Path]`|A list of paths to the GeoTIFF files to be mosaicked. All images **must** be in the same coordinate reference system to avoid reprojection.|
+#### Core Processing Interface (`process()`)
 
-**`process` method :**
-
-- Uses `rasterio.merge.merge` to combine the images.
+- Executes the `rasterio.merge.merge` function across the input file list.
     
-- Extracts and updates the metadata (`transform`, `width`, `height`, `crs`) from the first input image.
+- Extracts and builds the updated spatial metadata dictionary.
     
-- Stores the merged array in `self.mosaic_mimg` and the metadata in `self.mosaic_meta`.
+- Stores the final combined multi-band pixel array in `self.mosaic_mimg` and its metadata configurations in `self.mosaic_meta`.
 
+#### Custom File Serialization Method (`_export_file`)
 
-**`_export_file` method (custom override) :**  
-Unlike other tools that only save a PNG, this method :
+This module overrides the default file export lifecycle. Instead of exporting only a standard display image, it handles two separate outputs:
 
-- Writes a complete **GeoTIFF** file with full georeferencing to the output directory.
+1. **Fully Georeferenced GeoTIFF:** Serializes the complete multi-spectral array to disk, updating its internal header to include the new coordinate reference system and transform parameters.
     
-- Generates a **PNG** preview for quick visual inspection.
-    
-- Names the files automatically using the prefix `Mosaic_` and a unique identifier (UUID).
+2. **Visual PNG Preview:** Generates a lightweight browse image to support rapid quality control inspections.
 
+Both output files are automatically named using the class prefix `Mosaic_` combined with a unique Universally Unique Identifier (`UUID`).
 
-**Return value (`execute`) :**
+#### Return State (`execute()`)
 
-- The path of the saved GeoTIFF file is stored in `self._output`, enabling chained processing.
+Returns a `Path` object pointing to the newly written GeoTIFF file location on disk. This file path is stored directly in `self._output`, allowing it to be passed directly to downstream calculators for chained processing.
 
+### Operational Implementation
 
-**Usage example :**
-```python
+```Python
 from pathlib import Path
 from fezrs.tools.mosaic import MosaicCalculator
 
-tiles = [
-    "path/to/tile_01.tif",
-    "path/to/tile_02.tif",
-    "path/to/tile_03.tif"
+# Define the list of adjacent, overlapping input imagery tiles
+target_tiles = [
+    Path("./tiles/UTM32N_Scene_01.tif"),
+    Path("./tiles/UTM32N_Scene_02.tif"),
+    Path("./tiles/UTM32N_Scene_03.tif")
 ]
 
-calc = MosaicCalculator(tif_paths=tiles)
-result_tif = calc.execute(output_path="./mosaic_output/")
-print(f"Mosaic saved at: {result_tif}")
+# Initialize the spatial merging engine
+mosaic_engine = MosaicCalculator(tif_paths=target_tiles)
+
+# Run the mosaicking pipeline and serialize outputs
+georeferenced_mosaic_path = mosaic_engine.execute(
+    output_path="./exports/regional_mosaics/"
+)
+
+print(f"Operational master mosaic successfully saved at: {georeferenced_mosaic_path}")
 ```
 
----
+## Operational Reference: Advanced Overlap Resolution Methods
 
-### 3. Technical Notes and Requirements
+While the calculator defaults to the `"first"` pixel selection strategy, alternative merging methods can be passed directly to the underlying `rasterio.merge.merge` library to handle overlapping areas. The table below profiles these alternative strategies:
 
-- **Consistent CRS :** All input images must have the same projection. If they differ, `rasterio.merge` will automatically reproject them to the CRS of the first image, which may lead to spatial shifts or interpolation artefacts. It is strongly recommended to pre‑process the images with `rio warp` to a common CRS and resolution before mosaicking.
-    
-- **Overlap handling :** In overlapping areas the pixel from the image appearing first in the list is kept (the `"first"` method). For more sophisticated blending (e.g., feathering, averaging), the `method` parameter of `merge` must be explicitly set.
-    
-- **Memory consumption :** The entire mosaic is held in memory as a NumPy array (`self.mosaic_mimg`). For very large regions (e.g., country‑scale at high resolution), this can exceed available RAM. In such cases, windowed or tiled processing with `rasterio` would be needed.
-    
-- **No direct visualisation :** The `execute` method does not display the image interactively; it only writes files. This avoids loading large rasters into the graphics backend and ensures server compatibility.
-    
-- **Dependency :** This module requires the `rasterio` library, which is standard in most remote sensing Python environments.
-
----
-
-### 4. Suggestions for Development
-
-- **Exposed `method` parameter :** Add an optional `method` argument to the calculator (e.g., `"first"`, `"last"`, `"min"`, `"max"`, `"mean"`, `"sum"`) to control how overlapping regions are combined.
-    
-- **COG (Cloud Optimized GeoTIFF) support :** While COG files can be read, the current implementation does not exploit their ability to read only partial regions. Future versions could implement lazy mosaicking for massive datasets.
-    
-- **Fix the `__init__.py` bug :** Correct the import statement to export `MosaicCalculator` instead of `BaseTool`.
+| **Strategy**              | **Functional Behavior Profile**                                                                              | **Use Cases**                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| **`"first"`** _(Default)_ | Retains the pixel value from the first image in the file list that contains valid data at those coordinates. | Standard data combination when tiles share a consistent calibration profile. |
+| **`"last"`**              | Overwrites previous layers, using the pixel value from the last valid image in the file list.                | Updating an existing base map with newer imagery data.                       |
+| **`"min"`**               | Evaluates overlapping pixels across all layers and keeps the lowest value.                                   | Minimizing transient bright anomalies like cloud cover or glint.             |
+| **`"max"`**               | Evaluates overlapping pixels across all layers and keeps the highest value.                                  | Highlighting maximum surface extents or urban thermal signatures.            |
+| **`"mean"`**              | Computes the mathematical average value across all valid overlapping pixels.                                 | Smoothing out temporal differences and reducing random sensor noise.         |

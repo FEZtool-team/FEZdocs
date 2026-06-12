@@ -1,233 +1,194 @@
 # HSV
+## Module Overview
 
-### 1. Introduction
+The `hsv` module provides advanced color-space transformation tools that map multi-spectral satellite band configurations from the standard **RGB (Red, Green, Blue)** additive color model to the **HSV (Hue, Saturation, Value)** cylindrical coordinate system.
 
-This module provides the ability to convert satellite band composites into the **HSV (Hue, Saturation, Value)** colour space. The HSV space is often more suitable than RGB for visual analysis and for extracting colour‑based features from images, because it separates chromatic information (Hue, Saturation) from intensity (Value). Two separate classes are designed for two different applications in remote sensing.
+While RGB representations are ideal for electronic display hardware, they mix chromatic information (dominant color tones) with illumination intensity. This coupling makes automated pixel classification and feature extraction highly sensitive to shadows, cloud cover, and changing terrain illumination.
 
-**Existing Classes :**
+Converting imagery to the HSV color space resolves this issue by isolating the pure chromatic signature (Hue and Saturation) from the scene's structural brightness (Value). This decoupling allows analysts to isolate changes in land cover independently of lighting conditions.
 
-| Class Name        | Application                                                                                    |
-| ----------------- | ---------------------------------------------------------------------------------------------- |
-| `HSVCalculator`   | Convert the **NIR–Green–Blue** false‑colour composite (standard vegetation enhancement) to HSV |
-| `IRHSVCalculator` | Convert the **SWIR2–SWIR1–Red** false‑colour composite (infrared burn/soil moisture) to HSV    |
+```
+       [Raw Satellite Bands]
+        (e.g., NIR, SWIR, Red)
+                 │
+                 ▼
+     ┌───────────────────────┐
+     │  Normalized RGB Stack │ (Values bounded in [0.0, 1.0])
+     └───────────┬───────────┘
+                 │
+                 ▼
+     ┌───────────────────────┐
+     │ skimage.color.rgb2hsv │ (Non-linear Cylindrical Projection)
+     └───────────┬───────────┘
+                 │
+        ┌────────┴────────┬────────────────┐
+        ▼                 ▼                ▼
+    [Hue (H)]     [Saturation (S)]   [Value (V)]
+  Dominant Tone    Spectral Purity    Illumination
+  (0.0 to 1.0)      (0.0 to 1.0)     (0.0 to 1.0)
+```
 
----
+## Mathematical Foundations of the RGB → HSV Transformation
 
-### 2. Detailed Documentation for Each Class
+The non-linear projection from a Cartesian RGB cube to a cylindrical HSV coordinate system assumes that all input channels are normalized to the floating-point range $[0.0, 1.0]$.
 
-<span id="hsv-calculator"></span>
-
-#### 2.1. `HSVCalculator` – Standard HSV Space for Vegetation Analysis
-
-**Scientific objective**  
-Create a false‑colour image by mapping the NIR band to the red channel, the Green band to the green channel, and the Blue band to the blue channel, then transform the resulting RGB representation into HSV space. This allows the analyst to examine **Hue** (dominant spectral signature), **Saturation** (purity of that signature), and **Value** (overall brightness) independently – properties that are directly linked to vegetation health, soil colour, and water turbidity.
-
-**Full Explanation of the RGB→HSV Conversion Formulas**
-
-All bands are normalised to the range $[0,1]$ beforehand. The conversion implemented by `skimage.color.rgb2hsv` follows the standard algorithm :
-
-Given an RGB triplet $(R,G,B)$ with values in $[0,1]$, let :
-
-$$V \leftarrow \max(R, G, B)$$
-$$C \leftarrow V - \min(R, G, B)$$
-
-**Value (V)** is simply the maximum of the three colour channels :
+Given an input pixel triplet $(R, G, B)$, let $V$ represent the maximum channel intensity and $C$ represent the total chroma (dynamic range):
 
 $$V = \max(R, G, B)$$
 
-It represents the brightness of the colour. In the false‑colour context, $V$ indicates the overall reflectance intensity in the combined bands – bright pixels correspond to high reflectance in at least one of the three input bands.
+$$C = V - \min(R, G, B)$$
 
-**Saturation (S)** is defined as :
-    $$S = 
-    \begin{cases} 
-    0, & \text{if } V = 0 \\
-    C\\ 
-    V, & \text{otherwise} 
-    \end{cases}$$
+### Value ($V$)
 
-Saturation measures the purity of the colour. A low saturation means the three bands have nearly equal values (the pixel appears grey/white), while a high saturation indicates one or two bands dominate (pure colour). For example, a healthy vegetation pixel with a very high NIR value but low Green/Blue values will produce a red‑dominated false‑colour with high saturation.
+The Value component represents the overall brightness of a pixel, extracted as the maximum value among the three color channels. In remote sensing, this component acts as a shadow-insensitive index of maximum surface reflectance.
 
-**Hue (H)** encodes the dominant wavelength of the colour as an angle (0° to 360°), mapped to the interval $[0,1]$ in scikit‑image. The formula depends on which channel is the maximum :
+$$V = \max(R, G, B)$$
 
-- If $V=R$ (i.e., NIR dominates) :
+### Saturation ($S$)
+
+Saturation quantifies the purity or vividness of a color tone. It measures how far a spectral signature deviates from a grayscale value (where $R=G=B$).
+
+$$S = \begin{cases} 0, & \text{if } V = 0 \\ \frac{C}{V}, & \text{if } V > 0 \end{cases}$$
+
+- **Low Saturation ($S \to 0$):** Indicates balanced reflectance across all bands, typical of gray or white features like concrete, clouds, or highly reflective bare soils.
     
-    $$H = \frac{60^\circ}{360^\circ} \cdot \left( \frac{G - B}{C} \mod 6 \right)$$
-    
-    But since $G$ (Green) and $B$ (Blue) are the other channels, the exact angular shift is computed as :
-    
-    $$H' = \frac{G - B}{C} \quad \text{and} \quad H = \frac{60^\circ \cdot (H' \mod 6)}{360^\circ}$$
-    
-    More precisely, scikit‑image implements :
-    
-    $$H = 
-    \begin{cases} 
-    \frac{60^\circ}{360^\circ} \cdot \left( \frac{G - B}{C} \right) & \text{if } C \neq 0 \\ 
-    0 & \text{otherwise}
-    \end{cases}$$
-    
-    If the numerator is negative, the result is shifted by $360^\circ$ and then divided by $360^\circ$ to obtain the final $[0,1]$ value.
-    
-- If $V=G$ (Green dominates) :
-    
-    $$H = \frac{60^\circ}{360^\circ} \cdot \left( \frac{B - R}{C} + 2 \right)$$
-    
-- If $V=B$ (Blue dominates) :
-    
-    $$H = \frac{60^\circ}{360^\circ} \cdot \left( \frac{R - G}{C} + 4 \right)$$
+- **High Saturation ($S \to 1$):** Indicates that one or two bands strongly dominate the spectral signature, pointing to distinct target features (such as healthy vegetation or clear deep water).
 
-In the NIR–Green–Blue false‑colour composite :
+### Hue ($H$)
 
-- **Hue** reveals the colour tone : healthy vegetation (high NIR, low Green and Blue) appears in the red hues ($H≈0$); barren land (higher Green/Blue) may shift towards cyan/bluish.
+Hue determines the dominant color tone expressed as an angular coordinate. In `scikit-image`, this angle ($0^\circ \text{ to } 360^\circ$) is mapped to the normalized continuous range $[0.0, 1.0]$. The value is calculated using a piecewise function determined by which channel matches the maximum intensity $V$:
+
+$$H = \frac{60^\circ}{360^\circ} \cdot H_{\text{deg}}$$
+
+Where the angular component $H_{\text{deg}}$ is defined as:
+
+$$H_{\text{deg}} = \begin{cases} 0, & \text{if } C = 0 \\ \left( \frac{G - B}{C} \right) \bmod 6, & \text{if } V = R \\ \left( \frac{B - R}{C} \right) + 2, & \text{if } V = G \\ \left( \frac{R - G}{C} \right) + 4, & \text{if } V = B \end{cases}$$
+
+If the computed value is negative, it is wrapped back into the valid range by adding $1.0$ ($H = H + 1.0$), ensuring a seamless cyclic boundary where $0.0$ and $1.0$ both map to pure red.
+
+## Detailed Class Specifications
+
+### `HSVCalculator` (Standard False-Color Vegetation Space)
+
+#### Scientific and Physical Objective
+
+`HSVCalculator` separates chromatic and illumination components from a standard $NIR\text{--}Green\text{--}Blue$ false-color composite. Mapping the highly reflective Near-Infrared ($NIR$) band to the Red channel emphasizes variations in leaf cellular structure and canopy density, making this tool ideal for analyzing vegetation health and spatial biomass patterns.
+
+#### Channel Mapping & Remote Sensing Interpretation
+
+The class routes normalized single-band inputs into a target three-channel matrix:
+
+$$\begin{bmatrix} R \\ G \\ B \end{bmatrix} \leftarrow \begin{bmatrix} \text{NIR} \\ \text{Green} \\ \text{Blue} \end{bmatrix}$$
+
+- **`hue` ($H$):** Pinpoints the dominant color tone. Healthy vegetation exhibits high $NIR$ reflectance paired with low visible light absorption, concentrating its signature near pure red ($H \approx 0.0$ or $1.0$). As vegetation undergoes stress or thins out, the visible bands contribute more to the composite, shifting the hue toward cyan and blue tones.
     
-- **Saturation** indicates how strongly the NIR response stands out from the visible bands – a direct measure of photosynthetic activity.
+- **`saturation` ($S$):** Measures the contrast between the $NIR$ plateau and visible bands. High saturation values indicate high chlorophyll activity and dense canopies.
     
-- **Value** corresponds to the maximum reflectance among the three bands, giving an image of general brightness that is relatively insensitive to shadow.
+- **`value` ($V$):** Tracks maximum surface albedo. This provides a clear structural view of the landscape that helps identify topography and terrain boundaries while minimizing the impact of cloud shadows.
 
+#### Interface Architecture
 
-The class can return either the full three‑channel HSV cube or a single selected channel, depending on the `channel` parameter.
-
-**Input parameters (`__init__`) :**
-
-| Parameter    | Type                                           | Description                                                    |
-| ------------ | ---------------------------------------------- | -------------------------------------------------------------- |
-| `channel`    | `Literal["hsv", "hue", "saturation", "value"]` | Desired output channel. `"hsv"` returns the full 3‑band array. |
-| `nir_path`   | `str` or `Path`                                | Path to the Near‑Infrared (NIR) band file.                     |
-| `blue_path`  | `str` or `Path`                                | Path to the Blue band file.                                    |
-| `green_path` | `str` or `Path`                                | Path to the Green band file.                                   |
-
-**Return value of `process()` :**
-
-- If `channel="hsv"` : a three‑band array `(height, width, 3)` containing Hue, Saturation, Value.
+- **Constructor Method (`__init__`) Input Arguments:**
     
-- If `"hue"`, `"saturation"`, or `"value"` : a 2D array of the single channel.
+    - `nir_path` (`str` | `Path`): File path to the Near-Infrared raster layer.
+        
+    - `green_path` (`str` | `Path`): File path to the visible Green raster layer.
+        
+    - `blue_path` (`str` | `Path`): File path to the visible Blue raster layer.
+        
+    - `channel` (`Literal["hsv", "hue", "saturation", "value"]`): Specifies the output format. Selecting `"hsv"` exports a 3D multi-band cube `(Height, Width, 3)`, while selecting a single channel name returns a 2D spatial array.
+    
+- **Return State (`process()`):** Returns a 2D or 3D floating-point `numpy.ndarray` with values scaled between $[0.0, 1.0]$.
 
+#### Operational Implementation
 
-**Usage example :**
-```python
+```Python
+from pathlib import Path
 from fezrs.tools.hsv import HSVCalculator
 
-calc = HSVCalculator(
-    nir_path="path/to/NIR.tif",
-    green_path="path/to/Green.tif",
-    blue_path="path/to/Blue.tif",
+# Initialize standard vegetation HSV calculator
+veg_engine = HSVCalculator(
+    nir_path=Path("./data/S2_B08_NIR.tif"),
+    green_path=Path("./data/S2_B03_Green.tif"),
+    blue_path=Path("./data/S2_B02_Blue.tif"),
     channel="hue"
 )
-calc.execute(
-    output_path="./results/",
-    title="Hue Channel (NIR-Green-Blue)",
-    colormap="hsv",  # suitable for displaying Hue
+
+# Execute transformation and save output
+# Note: Cyclic colormaps like 'hsv' or 'twilight' match the 
+# circular properties of Hue, preventing edge artifacts at the 0.0/1.0 boundary.
+veg_engine.execute(
+    output_path="./exports/color_space/",
+    title="Normalized False-Color Vegetation Hue Map",
+    colormap="hsv",
     show_colorbar=True,
-    dpi=300
+    dpi=500
 )
 ```
 
----
+### `IRHSVCalculator` (Infrared Moisture & Burn Space)
 
-<span id="irhsv-calculator"></span>
+#### Scientific and Physical Objective
 
-#### 2.2. `IRHSVCalculator` – Infrared HSV Space (IR‑HSV)
+`IRHSVCalculator` maps short-wave infrared and visible bands to capture surface moisture anomalies, structural vegetation damage, and fire boundaries. It processes a $SWIR2\text{--}SWIR1\text{--}Red$ false-color composite, taking advantage of the fact that liquid water and high-moisture canopies strongly absorb short-wave infrared energy, whereas dry soil, exposed rock, and active burn scars reflect it highly.
 
-**Scientific objective**  
-Build a false‑colour composite where the red channel is SWIR2, the green channel is SWIR1, and the blue channel is Red, then convert to HSV. This combination is particularly sensitive to **soil moisture**, **burned areas**, and **vegetation stress**, because SWIR bands are strongly absorbed by water and exhibit high reflectance from bare soil and ash.
+#### Channel Mapping & Remote Sensing Interpretation
 
-**Full Explanation of the Formulas**
+The input layers are mapped to the core color channels as follows:
 
-The conversion mechanism is identical to that described for `HSVCalculator` – the same `rgb2hsv` function is applied. The crucial difference lies in the **physical meaning** of the RGB channels.
+$$\begin{bmatrix} R \\ G \\ B \end{bmatrix} \leftarrow \begin{bmatrix} \text{SWIR2} \\ \text{SWIR1} \\ \text{Red} \end{bmatrix}$$
 
-In this composite :
-
-- **R ← SWIR2 (Short‑Wave Infrared 2, e.g., Landsat Band 7)**  
-    Sensitive to mineral composition, soil moisture, and burnt areas. High SWIR2 reflectance is typical of exposed minerals, dry soil, and ash.
+- **`irhue` ($H_{\text{IR}}$):** Identifies specific land-surface modifications. Freshly burned areas show high $SWIR2$ reflectance from dry ash combined with low visible reflectance from charred surfaces. This isolates their signature within a narrow, predictable hue range ($H_{\text{IR}} \in [0.0, 0.15]$), separating fire scars from living vegetation.
     
-- **G ← SWIR1 (Short‑Wave Infrared 1, e.g., Landsat Band 6)**  
-    Also sensitive to moisture and vegetation structure, but with slightly different absorption features than SWIR2.
+- **`irsaturation` ($S_{\text{IR}}$):** Highlights areas with highly contrastive spectral profiles, such as mineral outcrops or intense fire impacts where $SWIR2$ values dominate over the other channels.
     
-- **B ← Red (visible Red, e.g., Landsat Band 4)**  
-    Strongly absorbed by green vegetation; low Red reflectance indicates healthy, dense vegetation.
+- **`irvalue` ($V_{\text{IR}}$):** Acts as an index of absolute shortwave reflectance, making it useful for separating high-reflectance features like clouds and ice from high-absorption features like open water.
 
+#### Interface Architecture
 
-Thus, in the HSV output derived from `(SWIR2, SWIR1, Red)` :
-
-- **irhue :** Encodes the dominant “colour” in this false‑colour space. For example, a pixel where SWIR2 >> SWIR1 ≈ Red (burnt area) appears in the red/orange hue range ($H≈0$). Healthy vegetation, with low Red and moderate SWIR values, appears in a different hue quadrant.
+- **Constructor Method (`__init__`) Input Arguments:**
     
-- **irsaturation :** Measures how pure the spectral signature is. High saturation occurs when one band dominates strongly (e.g., strong SWIR2 dominance over SWIR1 and Red → bright red in the false‑colour, hence high saturation).
+    - `swir2_path` (`str` | `Path`): File path to the Short-Wave Infrared 2 raster layer (e.g., Landsat Band 7).
+        
+    - `swir1_path` (`str` | `Path`): File path to the Short-Wave Infrared 1 raster layer (e.g., Landsat Band 6).
+        
+    - `red_path` (`str` | `Path`): File path to the visible Red raster layer.
+        
+    - `channel` (`Literal["irhsv", "irhue", "irsaturation", "irvalue"]`): Specifies the output format. Defaults to `"irhsv"`.
     
-- **irvalue :** Indicates the maximum reflectance among SWIR2, SWIR1, and Red. Bright areas (clouds, sand) yield high Value; dark areas (deep water, shadows) yield low Value.
+- **Return State (`process()`):** Returns a 2D or 3D floating-point `numpy.ndarray` array capturing infrared texture indices scaled between $[0.0, 1.0]$.
 
+#### Operational Implementation
 
-The mathematical definitions remain :
-
-$$V = \max(SWIR2, SWIR1, Red)$$
-$$S = 
-\begin{cases} 
-0, & V = 0 \\ 
-\frac{V - \min(SWIR2, SWIR1, Red)}{V}, & \text{otherwise}
-\end{cases}$$
-
-$$H = \text{computed via the same piecewise formula, using SWIR2 as R, SWIR1 as G, Red as B}$$
-
-This quantitative separation allows automatic thresholding : e.g., burned areas typically exhibit high irvalue (ash is bright in SWIR2), moderate irsaturation, and irhue in a narrow range around 0.0–0.15 (red/orange).
-
-**Input parameters :**
-
-| Parameter    | Type                                                   | Default   | Description                                           |
-| ------------ | ------------------------------------------------------ | --------- | ----------------------------------------------------- |
-| `red_path`   | `str` or `Path`                                        | required  | Path to the Red band file.                            |
-| `swir1_path` | `str` or `Path`                                        | required  | Path to the SWIR1 band file (e.g., Landsat 8 Band 6). |
-| `swir2_path` | `str` or `Path`                                        | required  | Path to the SWIR2 band file (e.g., Landsat 8 Band 7). |
-| `channel`    | `Literal["irhsv", "irhue", "irsaturation", "irvalue"]` | `"irhsv"` | Desired output channel.                               |
-
-**Return value :**
-Similar to `HSVCalculator`; a three‑band cube or a single 2D array, depending on `channel`.
-
-**Usage example :**
-```python
+```Python
+from pathlib import Path
 from fezrs.tools.hsv import IRHSVCalculator
 
-calc = IRHSVCalculator(
-    red_path="path/to/Red.tif",
-    swir1_path="path/to/SWIR1.tif",
-    swir2_path="path/to/SWIR2.tif",
-    channel="irvalue"
+# Initialize shortwave infrared HSV calculator for burn scar mapping
+burn_engine = IRHSVCalculator(
+    swir2_path=Path("./data/L8_B07_SWIR2.tif"),
+    swir1_path=Path("./data/L8_B06_SWIR1.tif"),
+    red_path=Path("./data/L8_B04_Red.tif"),
+    channel="irhue"
 )
-calc.execute(
-    output_path="./results/",
-    title="IR-Value Channel (SWIR2-SWIR1-Red)",
-    colormap="gray",
-    dpi=300
+
+# Execute transformation and save output
+burn_engine.execute(
+    output_path="./exports/color_space/",
+    title="Infrared Hue Map for Burn Scar Analysis",
+    colormap="twilight",
+    show_colorbar=True,
+    dpi=500
 )
 ```
 
----
+## Analytical Reference: Component Profiles
 
-### 3. Common Technical Notes
+The table below summarizes how specific surface types behave across the different color-space components, providing a reference for setting up rule-based classification models:
 
-- **Dependency :** Uses `skimage.color.rgb2hsv` for the conversion.
-    
-- **Data normalisation :** Both classes use `self.files_handler.get_normalized_bands()`, ensuring that band values are in $[0,1]$ before compositing. This is essential because `rgb2hsv` assumes input in that range.
-    
-- **HSV output ranges :**
-    
-    - **Hue :** $[0,1]$, where 0 corresponds to 0° (red) and 1 to 360° (again red, wrapping around).
-        
-    - **Saturation :** $[0,1]$, with 0 = completely unsaturated (grey) and 1 = fully saturated pure colour.
-        
-    - **Value :** $[0,1]$, 0 = black, 1 = maximum brightness.
-    
-- **Displaying Hue :** Use a cyclic colormap such as `'hsv'` or `'twilight'` so that the wraparound at 0/1 is visually seamless.
-    
-- **Key applications of IR‑HSV :**
-    
-    - `irhue` : Discrimination of burned areas (red/orange hue) from healthy vegetation and water.
-        
-    - `irsaturation` : Highlights areas where SWIR2 deviates strongly from SWIR1 and Red – typical of fire scars or mineral outcrops.
-        
-    - `irvalue` : Provides an albedo‑like image, useful for separating clouds/snow (high) from water (low).
-
----
-
-### 4. Suggestions for Development
-
-- **Parameterisation of band composites :** Currently the band assignment is hard‑coded. In future versions, allowing the user to specify which band maps to which RGB channel would make the tool applicable to any sensor and any thematic composite (e.g., NIR–Red–Green, or NDVI‑based colour transforms).
-    
-- **Direct Hue‑Saturation‑Value thresholding :** Adding methods to extract binary masks based on ranges of Hue, Saturation, or Value (e.g., `irhue between 0.0 and 0.1` for burned areas) would turn the module into a powerful interactive interpretation tool.
+|**Target Surface Feature**|**Composite Type**|**Hue Range Profile (H)**|**Saturation Profile (S)**|**Value Profile (V)**|**Analytical Application**|
+|---|---|---|---|---|---|
+|**Healthy Vegetation Canopy**|$NIR\text{--}Green\text{--}Blue$|$0.0 \le H \le 0.08$<br><br>  <br><br>(Pure Red Region)|High ($S \ge 0.75$)|Moderate to Low|Biomass monitoring, canopy tracking, and forest health assessments.|
+|**Sparsely Vegetated / Bare Soil**|$NIR\text{--}Green\text{--}Blue$|$0.45 \le H \le 0.65$<br><br>  <br><br>(Cyan/Blue Shift)|Low ($S \le 0.25$)|High to Moderate|Desertification mapping and urban sprawl monitoring.|
+|**Fresh Burn Scar / Charcoal**|$SWIR2\text{--}SWIR1\text{--}Red$|$0.0 \le H_{\text{IR}} \le 0.12$<br><br>  <br><br>(Deep Infrared Red)|Moderate ($0.4 \le S_{\text{IR}} \le 0.6$)|Moderate|Delineation of active fire perimeters and burn severity assessment.|
+|**High Moisture / Water Saturated**|$SWIR2\text{--}SWIR1\text{--}Red$|Highly Variable|Low ($S_{\text{IR}} \le 0.15$)|Low ($V_{\text{IR}} \le 0.10$)|Flood boundary mapping and wetland delineation.|
