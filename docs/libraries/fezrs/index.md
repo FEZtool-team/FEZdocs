@@ -126,12 +126,12 @@ Useful contribution links:
 | [SubDivCalculator](./change-detection#subdiv-calculator) | Post/pre band | `operation` | Performs band subtraction or division between dates | Change Detection |
 | [TimeCalculator](./change-detection#time-calculator) | Post/pre band | `time` | Extracts a raw before or after image | Change Detection |
 | [KMeansCalculator](./clustering#kmeans-calculator) | 1 | `n_clusters`, `random_state` | Applies K-Means clustering | Clustering |
-| [GuassianCalculator](./filters#guassian-calculator) | 1 | - | Gaussian blur filter | Filters |
+| [GaussianCalculator](./filters#gaussiancalculator--isotropic-low-pass-smoothing) | 1 | - | Gaussian blur filter | Filters |
 | [LaplacianCalculator](./filters#laplacian-calculator) | 1 | `kernel_size` | Edge detection via Laplacian operator | Filters |
 | [MeanCalculator](./filters#mean-calculator) | 1 | - | Mean (box) filter | Filters |
 | [MedianCalculator](./filters#median-calculator) | 1 | `kernel_size` | Median noise reduction | Filters |
 | [SobelCalculator](./filters#sobel-calculator) | 1 | `kernel_size` | Sobel edge detector | Filters |
-| [GLCMCalculator](./glcm#glcm-calculator) | 1 | `window_size`, `propery` | Texture extraction with GLCM features | GLCM |
+| [GLCMCalculator](./glcm#glcm-calculator) | 1 | `window_size`, `property`, `levels` | Texture extraction with GLCM features | GLCM |
 | [HSVCalculator](./hsv#hsv-calculator) | NIR, Green, Blue | `channel` | Converts a vegetation false-color composite to HSV | HSV |
 | [IRHSVCalculator](./hsv#irhsv-calculator) | Red, SWIR1, SWIR2 | `channel` | Converts an infrared false-color composite to HSV | HSV |
 | [OriginalCalculator](./image-enhancement#original-calculator) | 1 | - | Returns unmodified single-band input | Image Enhancement |
@@ -148,12 +148,12 @@ Useful contribution links:
 | [Geoeye_Calculator](./import-tools#geoeye-calculator) | Multi-band GeoTIFF | `level` | Extracts one band from a stacked image | Import Tools |
 | [Landsat8_Calculator](./import-tools#landsat8-calculator) | Red, Green, Blue, NIR, SWIR1, SWIR2 | `exportType` | Builds true-color or false-color composites | Import Tools |
 | [MosaicCalculator](./mosaic#mosaic-calculator) | Multiple GeoTIFFs | `tif_paths` | Merges images into a mosaicked raster | Mosaic |
-| [PCACalculator](./pca#pca-calculator) | Red, Green, Blue, NIR, SWIR1, SWIR2 | `selectBand` | Principal Component Analysis | PCA |
-| [AFRICalculator](./spectral-indices#afri-calculator) | NIR, SWIR1 | - | Calculates AFRI vegetation index | Spectral Indices |
-| [BICalculator](./spectral-indices#bi-calculator) | NIR, Red, Green | - | Calculates Bare Soil Index | Spectral Indices |
-| [NDVICalculator](./spectral-indices#ndvi-calculator) | NIR, Red | - | Calculates NDVI vegetation index | Spectral Indices |
-| [NDWICalculator](./spectral-indices#ndwi-calculator) | Green, NIR | - | Calculates NDWI water index | Spectral Indices |
-| [SAVICalculator](./spectral-indices#savi-calculator) | NIR, Red | - | Calculates Soil Adjusted Vegetation Index | Spectral Indices |
-| [UICalculator](./spectral-indices#ui-calculator) | NIR, SWIR2 | - | Calculates Urban Index | Spectral Indices |
+| [PCACalculator](./pca#pca-calculator) | Red, Green, Blue, NIR, SWIR1, SWIR2 | `component`, `standardize` | Principal Component Analysis | PCA |
+| [AFRICalculator](./spectral-indices#afri-calculator) | NIR, SWIR1 | `scale_factor`, `offset` | Calculates AFRI vegetation index | Spectral Indices |
+| [BICalculator](./spectral-indices#bi-calculator) | SWIR1, Red, NIR, Blue | `scale_factor`, `offset` | Calculates Bare Soil Index | Spectral Indices |
+| [NDVICalculator](./spectral-indices#ndvi-calculator) | NIR, Red | `scale_factor`, `offset` | Calculates NDVI vegetation index | Spectral Indices |
+| [NDWICalculator](./spectral-indices#ndwi-calculator) | Green, NIR | `scale_factor`, `offset` | Calculates NDWI water index | Spectral Indices |
+| [SAVICalculator](./spectral-indices#savi-calculator) | NIR, Red | `scale_factor`, `offset` | Calculates Soil Adjusted Vegetation Index | Spectral Indices |
+| [UICalculator](./spectral-indices#ui-calculator) | NIR, SWIR2 | `scale_factor`, `offset` | Calculates Urban Index | Spectral Indices |
 | [SpectralProfileCalculator](./spectral-profile#spectral-profile-calculator) | Red, Green, Blue, NIR, SWIR1, SWIR2 | - | Extracts a spectral signature | Spectral Profile |
-| [SVMCalculator](./svm#svm-calculator) | Red, Green, Blue, NIR, SWIR1, SWIR2 | `class_number`, `sample_number` | Classifies images with interactive SVM training | SVM |
+| [SVMCalculator](./svm#svm-calculator) | Red, Green, Blue, NIR, SWIR1, SWIR2 | `training_samples`, `class_number`, `sample_number` | Classifies images with an RBF SVM; pass `training_samples` to skip the GUI | SVM |
