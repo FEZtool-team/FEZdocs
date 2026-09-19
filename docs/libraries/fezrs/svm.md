@@ -50,7 +50,7 @@ The optional OpenCV window min–max normalizes **only the RGB preview** to $[0,
 
 The complete training array consists of $N_{\text{train}}$ examples:
 
-$$\mathcal{D} = \lbrace (\mathbf{x}_i, y_i) \mid \mathbf{x}_i \in \mathbb{R}^6, \; y_i \in \lbrace 1, 2, \dots, K \rbrace \rbrace_{i=1}^{N_{\text{train}}}$$
+$$\mathcal{D} = \lbrace (\mathbf{x}_i, y_i) \mid \mathbf{x}_i \in \mathbb{R}^6,~y_i \in \lbrace 1, 2, \dots, K \rbrace \rbrace_{i=1}^{N_{\text{train}}}$$
 
 Where $K$ is the number of land-cover classes. On the interactive path $N_{\text{train}} = K \times \text{sample\_number}$. On the programmatic path $N_{\text{train}}$ is the length of `training_samples`.
 
