@@ -169,7 +169,7 @@ Used only when `training_samples` is not supplied.
     
 2. The user must click representative pixels for each target class in a strict, sequential order. The interface expects all samples for Class 1 first, followed by all samples for Class 2, and so on, continuing up to Class $K$.
     
-3. Once the user records the total required number of clicks ($K \times \text{sample\_number}$), the interaction window closes automatically, and the pipeline starts training the SVM model.
+3. Once the user records the total required number of clicks ($K \times \text{\textit{sample&#95;number}}$), the interaction window closes automatically, and the pipeline starts training the SVM model.
 
 #### Internal Data Validation Constraints (`_validate`)
 
