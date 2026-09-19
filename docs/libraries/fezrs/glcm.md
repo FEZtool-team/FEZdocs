@@ -156,7 +156,7 @@ $$\sigma_i = \sqrt{\sum_{i=0}^{G-1} \sum_{j=0}^{G-1} (i - \mu_i)^2 \cdot p(i, j)
 - `window_size` (`int`): Dimension of the square local analysis window. Must be an odd integer satisfying:
 
 
-$$\text{window size} \ge 3$$
+$$\text{window\textunderscore size} \ge 3$$
 
 - `property` (`str`): Target Haralick feature name selection. Must match one of the following strings:
     
