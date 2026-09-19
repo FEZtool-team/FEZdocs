@@ -43,7 +43,7 @@ $$\text{image}\textunderscore\text{columns} = \lbrace \text{band}\textunderscore
 
 This collection is converted into a structurally indexed array where the dictionary keys determine the $X$-axis tracking names:
 
-$$\text{image\_columns\_list\_of\_bands} = [b_1, b_2, \dots, b_m] \quad \text{where } m \le 6$$
+$$\text{image}\textunderscore\text{columns}\textunderscore\text{list}\textunderscore\text{of}\textunderscore\text{bands} = [b_1, b_2, \dots, b_m] \quad \text{where } m \le 6$$
 
 ### 2.2. Global Spatial Averaging
 
