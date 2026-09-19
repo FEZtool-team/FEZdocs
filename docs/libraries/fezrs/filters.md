@@ -254,7 +254,7 @@ mean_blur.execute(
 
 Unlike linear convolutional filters, the median filter does not use a weighted scalar dot product. Instead, it analyzes the neighborhood window $W$ of size $k \times k$ centered at coordinates $(x, y)$, extracts all raw pixel values, sorts them in ascending numerical order, and assigns the exact middle value to the target pixel:
 
-$$I'(x, y) = \text{median} \left\{ I(u, v) \mid (u, v) \in W \right\}$$
+$$I'(x, y) = \text{median} \lbrace I(u, v) \mid (u, v) \in W \rbrace$$
 
 For a user-defined kernel size of $5$ ($k=5$), the localized window contains 25 independent pixels. The values are ordered sequentially, and the 13th element is selected as the median output.
 
