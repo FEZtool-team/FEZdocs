@@ -39,7 +39,7 @@ This module unifies separate spectral bands—typically including the visible sp
 
 The calculator filters the incoming files to extract valid, non-null bands and stores them in an ordered layout:
 
-$$\text{image&#95;columns} = \lbrace \text{band&#95;name} : I_{\text{band}}(x, y) \mid I_{\text{band}} \neq \text{None} \rbrace$$
+$$\text{image}\textunderscore\text{columns} = \lbrace \text{band}\textunderscore\text{name} : I_{\text{band}}(x, y) \mid I_{\text{band}} \neq \text{None} \rbrace$$
 
 This collection is converted into a structurally indexed array where the dictionary keys determine the $X$-axis tracking names:
 
