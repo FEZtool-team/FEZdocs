@@ -14,7 +14,7 @@ FEZdocs is the central documentation hub for the ecosystem, while FEZrs is one o
 
 <div class="team-grid">
   <article class="team-card">
-    <img class="team-avatar" src="/FEZtool-black-logo.png" alt="FEZteam logo" loading="lazy">
+    <img class="team-avatar" src="/favicon.svg" alt="FEZteam logo" loading="lazy">
     <div class="team-card__body">
       <h3>FEZteam</h3>
       <p class="team-role">Open-source maintainers</p>

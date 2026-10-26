@@ -1,4 +1,35 @@
-# Introduction
+---
+layout: home
+
+hero:
+  name: FEZdocs
+  text: Documentation for FEZtool
+  tagline: Free & Easy tools for Earth sciences. Installation guides, API references and worked examples for every FEZtool project.
+  image:
+    light: /feztool-mark-dark.svg
+    dark: /feztool-mark-light.svg
+    alt: FEZtool
+  actions:
+    - theme: brand
+      text: FEZrs reference
+      link: /libraries/fezrs/
+    - theme: alt
+      text: FEZfm earthquake monitor
+      link: /fezfm/
+    - theme: alt
+      text: FEZtool home
+      link: https://feztool-team.github.io/FEZhome/
+---
+
+## The FEZ ecosystem
+
+Each tool covers one Earth-science domain and shares the same principles: open code, a small and consistent API, and documentation written for practitioners.
+
+<ToolCards />
+
+---
+
+## Introduction
 
 **FEZdocs**, the official documentation platform for the **FEZtool** ecosystem — a growing collection of open-source tools and libraries focused on remote sensing, geospatial analysis, image processing, and scientific computing.
 
@@ -41,6 +72,16 @@ According to its project description, FEZrs provides tools for:
 - Integration with modern Python applications and APIs
 
 The package is distributed through PyPI and supports Python 3.10+.
+
+---
+
+## About FEZfm
+
+[FEZfm documentation](/fezfm/)
+[FEZfm monitor](https://fezfm.feztool.com/)
+[FEZfm on GitHub](https://github.com/FEZtool-team/FEZfm)
+
+FEZfm is the fault and geohazard monitoring tool of the FEZtool ecosystem. Its first version is an earthquake monitor that runs entirely on GitHub Actions and GitHub Pages: it collects reports from USGS and EMSC every 30 minutes, merges reports of the same quake, flags fault zones, significant events and active sequences, and publishes a feed, a map and downloadable data.
 
 ---
 
@@ -105,3 +146,5 @@ If you are interested in contributing, you can:
 - [FEZdocs Repository](https://github.com/FEZtool-team/FEZdocs)
 - [FEZrs Repository](https://github.com/FEZtool-team/FEZrs)
 - [FEZrs PyPI Package](https://pypi.org/project/fezrs/)
+- [FEZfm Repository](https://github.com/FEZtool-team/FEZfm)
+- [FEZhome, the FEZtool website](https://feztool-team.github.io/FEZhome/)

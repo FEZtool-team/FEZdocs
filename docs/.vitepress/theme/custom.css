@@ -1,53 +1,312 @@
+/*
+ * Design tokens from FEZhome (assets/css/main.css), mapped onto VitePress.
+ * Colors are RGB channels so they can take an alpha: rgb(var(--fez-50) / 0.5).
+ * Monochrome fez-* is the FEZtool brand and drives all chrome; the tool
+ * colors (rs green, fm blue, cc orange) appear only on that tool's pages and
+ * cards. The light theme redefines the same variables (neutral scale inverted
+ * around 500, tool scales flipped), as FEZhome does.
+ */
 :root {
-  --vp-c-brand-1: #343a40;
-  --vp-c-brand-2: #212529;
-  --vp-c-brand-3: #6c757d;
+  --fez-50: 26 29 32; /* #1A1D20 */
+  --fez-100: 33 37 41; /* #212529 */
+  --fez-200: 43 48 53; /* #2B3035 */
+  --fez-300: 52 58 64; /* #343A40 */
+  --fez-400: 73 80 87; /* #495057 */
+  --fez-500: 92 99 106; /* #5C636A */
+  --fez-600: 173 181 189; /* #ADB5BD */
+  --fez-700: 206 212 218; /* #CED4DA */
+  --fez-800: 222 226 230; /* #DEE2E6 */
+  --fez-900: 233 236 239; /* #E9ECEF */
+  --fez-950: 248 249 250; /* #F8F9FA */
 
-  --vp-c-bg: #f8f9fa;
-  --vp-c-bg-soft: #e9ecef;
+  --rs-300: 90 140 22;
+  --rs-500: 140 198 58;
+  --fm-300: 37 99 235;
+  --fm-500: 96 165 250;
+  --cc-300: 234 88 12;
+  --cc-500: 251 146 60;
 
-  --vp-c-text-1: #212529;
-  --vp-c-text-2: #343a40;
-  --vp-c-text-3: #6c757d;
+  /* Text on tool-colored buttons; does not flip. */
+  --on-tool: 26 29 32;
 
-  --vp-c-border: #adb5bd;
+  --border-glass: rgba(0, 0, 0, 0.1);
+  --border-glass-strong: rgba(0, 0, 0, 0.18);
+  --shadow-panel: 0 24px 48px -24px rgb(0 0 0 / 0.18);
 
-  --vp-home-hero-name-color: #212529;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
 
-  --vp-button-brand-bg: #343a40;
-  --vp-button-brand-hover-bg: #212529;
+  --vp-font-family-base: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --vp-font-family-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --vp-button-brand-text: #f8f9fa;
+  /* Light pages read on the F8F9FA panel; the sidebar sits one step down. */
+  --vp-c-bg: rgb(var(--fez-950));
+  --vp-c-bg-alt: rgb(var(--fez-900));
+  --vp-c-bg-elv: rgb(var(--fez-950));
+  --vp-c-bg-soft: rgb(var(--fez-900));
+
+  --vp-c-text-1: rgb(var(--fez-100));
+  --vp-c-text-2: rgb(var(--fez-400));
+  --vp-c-text-3: rgb(var(--fez-500));
+
+  --vp-c-border: var(--border-glass-strong);
+  --vp-c-divider: var(--border-glass);
+  --vp-c-gutter: rgb(var(--fez-900));
+
+  --vp-c-brand-1: rgb(var(--fez-100));
+  --vp-c-brand-2: rgb(var(--fez-300));
+  --vp-c-brand-3: rgb(var(--fez-400));
+  --vp-c-brand-soft: rgb(var(--fez-100) / 0.08);
+
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: rgb(var(--fez-950));
+  --vp-button-brand-bg: rgb(var(--fez-100));
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-hover-text: rgb(var(--fez-950));
+  --vp-button-brand-hover-bg: rgb(var(--fez-300));
+  --vp-button-brand-active-border: transparent;
+  --vp-button-brand-active-text: rgb(var(--fez-950));
+  --vp-button-brand-active-bg: rgb(var(--fez-400));
+  --vp-button-alt-border: var(--border-glass-strong);
+  --vp-button-alt-text: rgb(var(--fez-100));
+  --vp-button-alt-bg: transparent;
+  --vp-button-alt-hover-border: rgb(var(--fez-400));
+  --vp-button-alt-hover-text: rgb(var(--fez-50));
+  --vp-button-alt-hover-bg: transparent;
+
+  --vp-code-block-bg: rgb(var(--fez-900));
+  --vp-code-bg: rgb(var(--fez-100) / 0.07);
+  --vp-code-color: rgb(var(--fez-100));
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(180deg, rgb(var(--fez-50)) 30%, rgb(var(--fez-400)) 100%);
 }
 
-/* Dark mode */
+/* Dark: the FEZhome default. */
 .dark {
-  --vp-c-bg: #212529;
-  --vp-c-bg-soft: #343a40;
+  --fez-50: 248 249 250; /* #F8F9FA */
+  --fez-100: 233 236 239; /* #E9ECEF */
+  --fez-200: 222 226 230; /* #DEE2E6 */
+  --fez-300: 206 212 218; /* #CED4DA */
+  --fez-400: 173 181 189; /* #ADB5BD */
+  --fez-500: 108 117 125; /* #6C757D */
+  --fez-600: 73 80 87; /* #495057 */
+  --fez-700: 52 58 64; /* #343A40 */
+  --fez-800: 43 48 53; /* #2B3035 */
+  --fez-900: 33 37 41; /* #212529 */
+  --fez-950: 26 29 32; /* #1A1D20 */
 
-  --vp-c-text-1: #f8f9fa;
-  --vp-c-text-2: #e9ecef;
-  --vp-c-text-3: #adb5bd;
+  --rs-300: 169 215 102; /* #A9D766 */
+  --rs-500: 114 176 29; /* #72B01D */
+  --fm-300: 147 197 253; /* #93C5FD */
+  --fm-500: 59 130 246; /* #3B82F6 */
+  --cc-300: 253 186 116; /* #FDBA74 */
+  --cc-500: 249 115 22; /* #F97316 */
 
-  --vp-c-border: #6c757d;
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-glass-strong: rgba(255, 255, 255, 0.16);
+  --shadow-panel: 0 24px 48px -24px rgb(0 0 0 / 0.6);
 
-  --vp-c-brand-1: #adb5bd;
-  --vp-c-brand-2: #e9ecef;
-  --vp-c-brand-3: #6c757d;
+  --vp-c-bg: rgb(var(--fez-900));
+  --vp-c-bg-alt: rgb(var(--fez-950));
+  --vp-c-bg-elv: rgb(var(--fez-800));
+  --vp-c-bg-soft: rgb(var(--fez-800));
+
+  --vp-c-text-1: rgb(var(--fez-100));
+  --vp-c-text-2: rgb(var(--fez-400));
+  --vp-c-text-3: rgb(var(--fez-500));
+
+  --vp-c-gutter: rgb(var(--fez-950));
+
+  --vp-c-brand-1: rgb(var(--fez-50));
+  --vp-c-brand-2: rgb(var(--fez-200));
+  --vp-c-brand-3: rgb(var(--fez-300));
+  --vp-c-brand-soft: rgb(var(--fez-50) / 0.1);
+
+  --vp-button-brand-text: rgb(var(--fez-900));
+  --vp-button-brand-bg: rgb(var(--fez-50));
+  --vp-button-brand-hover-text: rgb(var(--fez-900));
+  --vp-button-brand-hover-bg: rgb(var(--fez-200));
+  --vp-button-brand-active-text: rgb(var(--fez-900));
+  --vp-button-brand-active-bg: rgb(var(--fez-300));
+
+  --vp-code-block-bg: rgb(var(--fez-950));
+  --vp-code-bg: rgb(var(--fez-50) / 0.08);
 }
 
+::selection {
+  background: rgb(var(--fez-100));
+  color: rgb(var(--fez-950));
+}
+
+/* Navbar: the FEZdocs logo (mark + FEZDOCS lettering) stands alone, no text title. */
 .VPNavBarTitle .logo {
-  height: 32px !important;
+  height: 22px !important;
   width: auto !important;
 }
 
-.VPNavBarTitle {
-  gap: 10px;
+/* Headings follow FEZhome: bold page titles, semibold sections, sentence case. */
+.vp-doc h1 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.VPNavBarTitle .title {
+.vp-doc h2 {
+  border-top-color: var(--border-glass);
+  font-weight: 600;
+}
+
+.vp-doc h3 {
+  font-weight: 600;
+}
+
+.vp-doc a {
+  text-decoration-color: rgb(var(--fez-500));
+  text-underline-offset: 4px;
+}
+
+.vp-doc a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Rounded buttons, as in FEZhome. */
+.VPButton {
+  border-radius: 999px !important;
+  font-weight: 500 !important;
+}
+
+/* Home hero: faint coordinate grid (FEZhome .bg-grid) behind the mark. */
+.VPHome .VPHero {
+  position: relative;
+  isolation: isolate;
+}
+
+.VPHome .VPHero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: linear-gradient(var(--border-glass) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-glass) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center top;
+  -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent);
+  mask-image: linear-gradient(180deg, #000 60%, transparent);
+  pointer-events: none;
+}
+
+.VPHero .name {
   font-weight: 700;
-  letter-spacing: 0.3px;
+}
+
+.VPHero .image-bg {
+  display: none;
+}
+
+/*
+ * Tool pages. A two-letter badge (FEZhome ToolsToolBadge) precedes the page
+ * title, and links are underlined in the tool color. Chrome stays monochrome.
+ */
+.tool-rs {
+  --tool-300: var(--rs-300);
+  --tool-500: var(--rs-500);
+  --tool-code: "RS";
+}
+
+.tool-fm {
+  --tool-300: var(--fm-300);
+  --tool-500: var(--fm-500);
+  --tool-code: "FM";
+}
+
+.tool-rs .vp-doc h1::before,
+.tool-fm .vp-doc h1::before {
+  content: var(--tool-code);
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-right: 0.85rem;
+  border: 1px solid rgb(var(--tool-500) / 0.5);
+  border-radius: var(--radius-md);
+  background: rgb(var(--tool-500) / 0.1);
+  color: rgb(var(--tool-300));
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  vertical-align: 0.3em;
+}
+
+.tool-rs .vp-doc a,
+.tool-fm .vp-doc a {
+  text-decoration-color: rgb(var(--tool-500) / 0.7);
+}
+
+.tool-badge {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.tool-badge--rs {
+  border-color: rgb(var(--rs-500) / 0.5);
+  background: rgb(var(--rs-500) / 0.1);
+  color: rgb(var(--rs-300));
+}
+
+.tool-badge--fm {
+  border-color: rgb(var(--fm-500) / 0.5);
+  background: rgb(var(--fm-500) / 0.1);
+  color: rgb(var(--fm-300));
+}
+
+.tool-badge--cc {
+  border-color: rgb(var(--cc-500) / 0.5);
+  background: rgb(var(--cc-500) / 0.1);
+  color: rgb(var(--cc-300));
+}
+
+/* Facts grid with shared hairline cells (FEZhome grid rule). */
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 24px 0;
+  border-top: 1px solid var(--border-glass-strong);
+  border-left: 1px solid var(--border-glass-strong);
+}
+
+.fact-grid > div {
+  padding: 14px 16px;
+  border-right: 1px solid var(--border-glass-strong);
+  border-bottom: 1px solid var(--border-glass-strong);
+}
+
+.fact-grid dt {
+  color: var(--vp-c-text-3);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.fact-grid dd {
+  margin: 2px 0 0;
+  color: var(--vp-c-text-1);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 639px) {
+  .fact-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .team-grid {
