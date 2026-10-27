@@ -1,3 +1,7 @@
+---
+description: "FEZrs GLCMCalculator builds texture maps from the gray-level co-occurrence matrix and Haralick features such as contrast and homogeneity, in a sliding window."
+---
+
 # GLCM (Gray Level Co-occurrence Matrix)
 ## Overview
 

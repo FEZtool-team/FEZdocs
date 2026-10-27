@@ -1,3 +1,7 @@
+---
+description: "FEZrs change detection compares two dates of one area: burn severity from differential burn ratios, change vector analysis, and band differences and ratios."
+---
+
 # Change Detection
 ## Overview
 

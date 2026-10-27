@@ -1,3 +1,7 @@
+---
+description: "FEZrs import tools read GeoEye multi-band images and Landsat 8 single-band products into normalized bands and RGB composites for the other FEZrs modules."
+---
+
 # Import Tools
 ## Overview
 

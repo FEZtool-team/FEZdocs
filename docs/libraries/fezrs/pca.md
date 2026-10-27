@@ -1,3 +1,7 @@
+---
+description: "FEZrs PCACalculator: principal component analysis of a six-band multispectral stack, rotating the bands into uncorrelated components ordered by explained variance."
+---
+
 # PCA (Principal Component Analysis)
 ## Overview
 

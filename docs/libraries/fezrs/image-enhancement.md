@@ -1,3 +1,7 @@
+---
+description: "FEZrs image enhancement: histogram and adaptive (CLAHE) equalization, and gamma, log and sigmoid adjustment for bands and RGB composites, with histogram export."
+---
+
 # Image Enhancement
 ## Overview
 

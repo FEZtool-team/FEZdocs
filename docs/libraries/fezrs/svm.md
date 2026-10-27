@@ -1,3 +1,7 @@
+---
+description: "FEZrs SVMCalculator: supervised land-cover classification with an RBF-kernel support vector machine, trained on labelled pixels given in code or by clicking."
+---
+
 # SVM (Support Vector Machine)
 ## Overview
 

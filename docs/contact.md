@@ -1,10 +1,14 @@
+---
+description: "Contact the FEZtool team by email at info@feztool.com, on GitHub or through feztool.com, and what to include when you report a bug or a documentation error."
+---
+
 # Contact
 
 Have a question about FEZdocs, FEZrs, or the FEZtool ecosystem? Use the channel that best matches what you need.
 
 ---
 
-## Contact FEZteam
+## Contact the FEZtool team
 
 <div class="contact-grid">
   <article class="contact-card">
@@ -47,4 +51,4 @@ For bug reports or documentation corrections, include:
 - What actually happened.
 - Any relevant package version, command, or error message.
 
-Clear reports help FEZteam reproduce problems faster and improve the documentation with less back-and-forth.
+Clear reports help the FEZtool team reproduce problems faster and improve the documentation with less back-and-forth.

@@ -1,3 +1,7 @@
+---
+description: "FEZrs spatial filters for satellite images: Gaussian, mean and median smoothing, and Laplacian and Sobel edge detection, with kernels, parameters and examples."
+---
+
 # Filters
 ## Overview
 

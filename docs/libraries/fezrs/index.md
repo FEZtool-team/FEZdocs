@@ -1,3 +1,8 @@
+---
+title: FEZrs overview
+description: "FEZrs is an open-source Python package for multispectral remote sensing. An overview of its modules, the shared calculator API, contributors and how to contribute."
+---
+
 # Overview
 
 FEZrs embraces the **"simple yet powerful"** design principle.
