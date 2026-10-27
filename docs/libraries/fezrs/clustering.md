@@ -1,3 +1,7 @@
+---
+description: "FEZrs KMeansCalculator: unsupervised K-Means clustering of multispectral pixels into k spectral classes for land-cover mapping, with its parameters and an example."
+---
+
 # Clustering
 ## Overview
 

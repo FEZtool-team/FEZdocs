@@ -1,3 +1,7 @@
+---
+description: "How FEZdocs and FEZtool projects are licensed under the Apache License 2.0: what you may use, modify and redistribute, attribution rules and trademark limits."
+---
+
 # Licensing
 
 This page explains how FEZdocs and FEZtool open-source projects can be used, modified, and redistributed.
@@ -42,7 +46,7 @@ The license is a good match because it:
 - Encourages adoption in research and industry environments.
 - Gives contributors and users clearer patent protections than simpler permissive licenses.
 - Keeps redistribution rules understandable for libraries, documentation, examples, and derived tools.
-- Preserves attribution to FEZteam and contributors.
+- Preserves attribution to FEZtool and its contributors.
 
 ---
 
@@ -63,7 +67,7 @@ When redistributing FEZdocs, FEZrs, or derivative works, keep these requirements
 - Preserve existing copyright and attribution notices.
 - Mark modified files when you redistribute changed versions.
 - Include any required `NOTICE` file content if a project provides one.
-- Do not imply FEZteam endorsement of your project unless permission is explicitly granted.
+- Do not imply FEZtool endorsement of your project unless permission is explicitly granted.
 
 ---
 
@@ -77,7 +81,7 @@ By contributing, you agree that your contribution can be included and distribute
 
 ## Trademark and Branding
 
-Apache 2.0 does not grant permission to use FEZtool or FEZteam names, logos, marks, or branding as your own product identity.
+Apache 2.0 does not grant permission to use FEZtool names, logos, marks, or branding as your own product identity.
 
 You may use the names in a reasonable descriptive way, such as:
 
@@ -85,13 +89,13 @@ You may use the names in a reasonable descriptive way, such as:
 - "Documentation for a FEZtool workflow"
 - "Uses FEZdocs examples"
 
-Do not present an independent project as officially maintained, sponsored, or endorsed by FEZteam unless that relationship exists.
+Do not present an independent project as officially maintained, sponsored, or endorsed by FEZtool unless that relationship exists.
 
 ---
 
 ## Questions and Comments
 
-For licensing questions, project usage questions, or attribution concerns, contact FEZteam:
+For licensing questions, project usage questions, or attribution concerns, contact the FEZtool team:
 
 - Website: [feztool.com](https://feztool.com/)
 - Email: [info@feztool.com](mailto:info@feztool.com)

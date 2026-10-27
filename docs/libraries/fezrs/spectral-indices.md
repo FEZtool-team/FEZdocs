@@ -1,3 +1,7 @@
+---
+description: "Compute NDVI, NDWI, SAVI, AFRI, BI and UI with FEZrs: formulas, required bands, reflectance scaling, and saving a figure or a georeferenced GeoTIFF."
+---
+
 # Spectral Indices
 ## Overview
 

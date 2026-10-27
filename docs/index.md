@@ -1,5 +1,8 @@
 ---
 layout: home
+title: "FEZdocs: documentation for FEZtool's Earth-science tools"
+titleTemplate: false
+description: "Documentation for FEZtool's free, open-source Earth-science tools: installation guides and API references for FEZrs and the FEZfm earthquake monitor."
 
 hero:
   name: FEZdocs
@@ -11,14 +14,14 @@ hero:
     alt: FEZtool
   actions:
     - theme: brand
-      text: FEZrs reference
+      text: FEZrs docs
       link: /libraries/fezrs/
     - theme: alt
-      text: FEZfm earthquake monitor
-      link: /fezfm/
+      text: FEZfm monitor
+      link: https://fezfm.feztool.com/
     - theme: alt
-      text: FEZtool home
-      link: https://feztool-team.github.io/FEZhome/
+      text: feztool.com
+      link: https://feztool.com/
 ---
 
 ## The FEZ ecosystem
@@ -39,6 +42,7 @@ FEZdocs is designed to provide clear, structured, and developer-friendly documen
 
 ## What is FEZtool?
 
+[FEZtool website](https://feztool.com/)
 [FEZtool GitHub Organization](https://github.com/FEZtool-team)
 
 FEZtool is an open-source initiative focused on building modern and accessible tools for:
@@ -71,7 +75,7 @@ According to its project description, FEZrs provides tools for:
 - TIFF-based workflows
 - Integration with modern Python applications and APIs
 
-The package is distributed through PyPI and supports Python 3.10+.
+The package is distributed through PyPI and Anaconda and requires Python 3.11 or later.
 
 ---
 
@@ -104,7 +108,7 @@ This repository currently serves as the main documentation hub while the ecosyst
 
 ## Current Status
 
-FEZdocs is currently in an early stage and hosted directly under the maintainer’s GitHub account while the platform and libraries continue to mature.
+FEZdocs is currently in an early stage and hosted on GitHub Pages by the FEZtool-team organization while the platform and libraries continue to mature.
 
 The documentation structure, design, and content are continuously improving and may change significantly over time until the project reaches a stable public release.
 
@@ -147,4 +151,5 @@ If you are interested in contributing, you can:
 - [FEZrs Repository](https://github.com/FEZtool-team/FEZrs)
 - [FEZrs PyPI Package](https://pypi.org/project/fezrs/)
 - [FEZfm Repository](https://github.com/FEZtool-team/FEZfm)
-- [FEZhome, the FEZtool website](https://feztool-team.github.io/FEZhome/)
+- [feztool.com, the FEZtool website](https://feztool.com/)
+- [FEZfm earthquake monitor](https://fezfm.feztool.com/)

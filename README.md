@@ -1,6 +1,10 @@
 # FEZdocs
 
-FEZdocs is the centralized documentation platform for the FEZtool ecosystem — a growing collection of remote sensing, geospatial, image processing, and scientific Python tools developed by FEZteam.
+FEZdocs is the centralized documentation platform for the FEZtool ecosystem — a growing collection of remote sensing, geospatial, image processing, and scientific Python tools developed by the FEZtool team.
+
+- **Read the docs:** https://feztool-team.github.io/FEZdocs/
+- **FEZtool website:** https://feztool.com/
+- **FEZfm earthquake monitor:** https://fezfm.feztool.com/
 
 Built to be practical, developer-friendly, and easy to navigate, FEZdocs combines technical documentation, examples, concepts, experiments, and development notes in one place.
 
@@ -8,7 +12,7 @@ Built to be practical, developer-friendly, and easy to navigate, FEZdocs combine
 
 ## Overview
 
-This repository contains the official documentation for FEZtool libraries and related projects maintained by FEZteam.
+This repository contains the official documentation for FEZtool libraries and related projects maintained by FEZtool: the [FEZrs](https://feztool-team.github.io/FEZdocs/libraries/fezrs/) Python package for remote sensing and the [FEZfm](https://feztool-team.github.io/FEZdocs/fezfm/) earthquake monitor.
 
 The goal is simple:
 
@@ -77,7 +81,7 @@ Architecture decisions, project structure, packaging workflows, testing strategi
 
 ## Project Goals
 
-* Centralize FEZteam documentation in one platform
+* Centralize FEZtool documentation in one platform
 * Keep documentation developer-first and practical
 * Reduce onboarding complexity for contributors
 * Document both stable and experimental workflows
@@ -113,7 +117,7 @@ See the `LICENSE` file for full details.
 
 ## Maintained By
 
-Developed and maintained by FEZteam.
+Developed and maintained by [FEZtool](https://feztool.com/).
 
 GitHub Organization:
 https://github.com/FEZtool-team

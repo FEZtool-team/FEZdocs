@@ -1,3 +1,7 @@
+---
+description: "FEZrs MosaicCalculator merges adjacent or overlapping raster tiles into one georeferenced mosaic with rasterio, taking overlap pixels from the first tile listed."
+---
+
 # Mosaic
 ## Overview
 

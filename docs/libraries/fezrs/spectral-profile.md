@@ -1,3 +1,7 @@
+---
+description: "FEZrs SpectralProfileCalculator plots the scene-wide mean of six bands, from blue to SWIR2, as a spectral profile for characterizing surface materials."
+---
+
 # Spectral Profile
 ## Overview
 

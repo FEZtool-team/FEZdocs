@@ -1,3 +1,7 @@
+---
+description: "Install FEZrs, the open-source Python package for remote sensing, with pip, conda or mamba, and browse every FEZrs release published on PyPI with its upload date."
+---
+
 # Installation
 
 Install FEZrs with the Python package manager that fits your environment.

@@ -1,6 +1,10 @@
-# Meet FEZteam
+---
+description: "The FEZtool team behind FEZrs, FEZfm and FEZdocs: the core members, their roles, and links to their GitHub, ORCID, Google Scholar and LinkedIn profiles."
+---
 
-FEZteam builds and maintains the FEZtool ecosystem: open-source tools and documentation for remote sensing, geospatial analysis, image processing, and scientific computing.
+# Meet the FEZtool team
+
+The FEZtool team builds and maintains the FEZtool ecosystem: open-source tools and documentation for remote sensing, geospatial analysis, image processing, and scientific computing.
 
 This is not an exhaustive list of every person who may contribute to FEZtool projects. It is a practical overview of the team and project areas behind the current documentation.
 
@@ -14,9 +18,9 @@ FEZdocs is the central documentation hub for the ecosystem, while FEZrs is one o
 
 <div class="team-grid">
   <article class="team-card">
-    <img class="team-avatar" src="/favicon.svg" alt="FEZteam logo" loading="lazy">
+    <img class="team-avatar" src="/favicon.svg" alt="FEZtool logo" loading="lazy">
     <div class="team-card__body">
-      <h3>FEZteam</h3>
+      <h3>FEZtool</h3>
       <p class="team-role">Open-source maintainers</p>
       <dl class="team-meta">
         <div>
@@ -29,14 +33,14 @@ FEZdocs is the central documentation hub for the ecosystem, while FEZrs is one o
         </div>
       </dl>
     </div>
-    <div class="team-socials" aria-label="FEZteam social links">
-      <a class="team-social" href="https://www.linkedin.com/company/feztool" target="_blank" rel="noopener" aria-label="FEZteam on LinkedIn">
+    <div class="team-socials" aria-label="FEZtool social links">
+      <a class="team-social" href="https://www.linkedin.com/company/feztool" target="_blank" rel="noopener" aria-label="FEZtool on LinkedIn">
         <span class="team-social__icon team-social__icon--linkedin" aria-hidden="true"></span>
       </a>
-      <a class="team-social" href="https://github.com/FEZtool-team" target="_blank" rel="noopener" aria-label="FEZteam on GitHub">
+      <a class="team-social" href="https://github.com/FEZtool-team" target="_blank" rel="noopener" aria-label="FEZtool on GitHub">
         <span class="team-social__icon team-social__icon--github" aria-hidden="true"></span>
       </a>
-      <a class="team-social" href="https://x.com/FEZtool" target="_blank" rel="noopener" aria-label="FEZteam on X">
+      <a class="team-social" href="https://x.com/FEZtool" target="_blank" rel="noopener" aria-label="FEZtool on X">
         <span class="team-social__icon team-social__icon--x" aria-hidden="true"></span>
       </a>
     </div>
@@ -47,7 +51,7 @@ FEZdocs is the central documentation hub for the ecosystem, while FEZrs is one o
 
 ## Core Team
 
-The FEZteam contributors guide the direction of FEZtool libraries, documentation, examples, and research-oriented workflows.
+The FEZtool core team guides the direction of FEZtool libraries, documentation, examples, and research-oriented workflows.
 
 <div class="team-grid">
   <article class="team-card team-card--profile">
@@ -86,7 +90,7 @@ The FEZteam contributors guide the direction of FEZtool libraries, documentation
     <dl class="team-meta team-meta--profile">
       <div>
         <dt>Focus</dt>
-        <dd>Research, experimentation, package ideas, and turning "what if?" into the next thing FEZteam should build.</dd>
+        <dd>Research, experimentation, package ideas, and turning "what if?" into the next thing FEZtool should build.</dd>
       </div>
       <div>
         <dt>Project areas</dt>

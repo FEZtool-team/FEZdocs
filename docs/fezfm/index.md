@@ -1,3 +1,8 @@
+---
+title: FEZfm earthquake monitor
+description: "FEZfm merges USGS and EMSC earthquake reports every 30 minutes and publishes a feed, a map and data. Its sources, flags, downloads and how to run it yourself."
+---
+
 # FEZfm
 
 FEZfm is the fault and geohazard monitoring tool of FEZtool. Version 1 is an earthquake monitor: every 30 minutes it collects reports from USGS and EMSC, merges reports of the same quake, stores them in DuckDB, and publishes a feed, a map and downloadable data to GitHub Pages. It needs no server.

@@ -8,7 +8,7 @@
     "Nodejs"
   ],
   "license": "Apache-2.0",
-  "author": "FEZteam",
+  "author": "FEZtool",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
