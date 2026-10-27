@@ -1,26 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-
-type PyPIFile = {
-  filename?: string;
-  packagetype?: string;
-  python_version?: string;
-  upload_time_iso_8601?: string;
-  yanked?: boolean;
-};
-
-type PyPIResponse = {
-  releases: Record<string, PyPIFile[]>;
-};
-
-type ReleaseRow = {
-  version: string;
-  uploadedAt: string | null;
-  fileCount: number;
-  fileTypes: string;
-  pythonVersions: string;
-  yanked: boolean;
-};
+import { computed, ref } from "vue";
+import { data } from "../releases.data";
 
 const props = withDefaults(
   defineProps<{
@@ -33,30 +13,27 @@ const props = withDefaults(
   }
 );
 
-const releases = ref<ReleaseRow[]>([]);
-const isLoading = ref(true);
-const errorMessage = ref("");
+// Loaded at build time (releases.data.ts), so every row is in the HTML; paging
+// only hides rows.
+const pkg = computed(() => data[props.packageName]);
+const releases = computed(() => pkg.value?.releases ?? []);
 const currentPage = ref(1);
 
 const totalPages = computed(() => {
   return Math.max(1, Math.ceil(releases.value.length / props.pageSize));
 });
 
-const visibleReleases = computed(() => {
-  const start = (currentPage.value - 1) * props.pageSize;
-  return releases.value.slice(start, start + props.pageSize);
-});
-
 const shownRange = computed(() => {
-  if (releases.value.length === 0) {
-    return "0 releases";
-  }
-
   const start = (currentPage.value - 1) * props.pageSize + 1;
   const end = Math.min(currentPage.value * props.pageSize, releases.value.length);
   return `${start}-${end} of ${releases.value.length} releases`;
 });
 
+function isOnPage(index: number) {
+  return Math.floor(index / props.pageSize) + 1 === currentPage.value;
+}
+
+// UTC, so the build and the browser format the same date.
 function formatDate(value: string | null) {
   if (!value) {
     return "No upload date";
@@ -66,99 +43,32 @@ function formatDate(value: string | null) {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   }).format(new Date(value));
-}
-
-function uniqueValues(files: PyPIFile[], key: "packagetype" | "python_version") {
-  const values = files
-    .map((file) => file[key])
-    .filter((value): value is string => Boolean(value));
-
-  return [...new Set(values)].join(", ") || "-";
-}
-
-function latestUpload(files: PyPIFile[]) {
-  const timestamps = files
-    .map((file) => file.upload_time_iso_8601)
-    .filter((value): value is string => Boolean(value))
-    .map((value) => new Date(value).getTime())
-    .filter((value) => !Number.isNaN(value));
-
-  if (timestamps.length === 0) {
-    return null;
-  }
-
-  return new Date(Math.max(...timestamps)).toISOString();
-}
-
-function mapReleases(data: PyPIResponse) {
-  return Object.entries(data.releases)
-    .map(([version, files]) => ({
-      version,
-      uploadedAt: latestUpload(files),
-      fileCount: files.length,
-      fileTypes: uniqueValues(files, "packagetype"),
-      pythonVersions: uniqueValues(files, "python_version"),
-      yanked: files.some((file) => file.yanked),
-    }))
-    .sort((a, b) => {
-      const aTime = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
-      const bTime = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
-      return bTime - aTime;
-    });
-}
-
-async function fetchReleases() {
-  isLoading.value = true;
-  errorMessage.value = "";
-
-  try {
-    const response = await fetch(`https://pypi.org/pypi/${props.packageName}/json`);
-
-    if (!response.ok) {
-      throw new Error(`PyPI returned ${response.status}`);
-    }
-
-    const data = (await response.json()) as PyPIResponse;
-    releases.value = mapReleases(data);
-    currentPage.value = 1;
-  } catch (error) {
-    errorMessage.value =
-      error instanceof Error ? error.message : "Unable to load release data.";
-  } finally {
-    isLoading.value = false;
-  }
 }
 
 function goToPage(page: number) {
   currentPage.value = Math.min(Math.max(page, 1), totalPages.value);
 }
-
-onMounted(fetchReleases);
 </script>
 
 <template>
   <section class="pypi-releases" aria-live="polite">
     <div class="release-header">
-      <div>
-        <h2>PyPI Release Versions</h2>
-        <p>
-          Live release data for
-          <a :href="`https://pypi.org/project/${packageName}/#history`" target="_blank" rel="noopener">
-            {{ packageName }}
-          </a>
-          from PyPI.
-        </p>
-      </div>
-      <button class="refresh-button" type="button" :disabled="isLoading" @click="fetchReleases">
-        {{ isLoading ? "Loading" : "Refresh" }}
-      </button>
+      <h2>PyPI Release Versions</h2>
+      <p>
+        Release history of
+        <a :href="`https://pypi.org/project/${packageName}/#history`" target="_blank" rel="noopener">
+          {{ packageName }}
+        </a>
+        on PyPI<template v-if="pkg">, as of {{ formatDate(pkg.fetchedAt) }}</template>.
+        <template v-if="pkg?.requiresPython">Requires Python {{ pkg.requiresPython }}.</template>
+      </p>
     </div>
 
-    <div v-if="isLoading" class="release-state">Loading release versions from PyPI...</div>
-
-    <div v-else-if="errorMessage" class="release-state is-error">
-      PyPI release data could not be loaded. {{ errorMessage }}
+    <div v-if="!releases.length" class="release-state is-error">
+      PyPI release data was not available when this page was built. See the
+      <a :href="`https://pypi.org/project/${packageName}/#history`" target="_blank" rel="noopener">release history on PyPI</a>.
     </div>
 
     <template v-else>
@@ -177,7 +87,7 @@ onMounted(fetchReleases);
             </tr>
           </thead>
           <tbody>
-            <tr v-for="release in visibleReleases" :key="release.version">
+            <tr v-for="(release, index) in releases" v-show="isOnPage(index)" :key="release.version">
               <td>
                 <a
                   :href="`https://pypi.org/project/${packageName}/${release.version}/`"
@@ -201,7 +111,7 @@ onMounted(fetchReleases);
         </table>
       </div>
 
-      <nav class="pagination" aria-label="PyPI release pages">
+      <nav v-if="totalPages > 1" class="pagination" aria-label="PyPI release pages">
         <button type="button" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
           Previous
         </button>
@@ -228,10 +138,6 @@ onMounted(fetchReleases);
 }
 
 .release-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
   margin-bottom: 16px;
 }
 
@@ -246,7 +152,6 @@ onMounted(fetchReleases);
   color: var(--vp-c-text-2);
 }
 
-.refresh-button,
 .pagination button {
   min-height: 36px;
   padding: 0 14px;
@@ -258,7 +163,6 @@ onMounted(fetchReleases);
   cursor: pointer;
 }
 
-.refresh-button:disabled,
 .pagination button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -273,6 +177,10 @@ onMounted(fetchReleases);
 
 .release-state.is-error {
   color: var(--vp-c-danger-1);
+}
+
+.release-state a {
+  color: inherit;
 }
 
 .release-summary {
@@ -316,7 +224,6 @@ onMounted(fetchReleases);
 }
 
 @media (max-width: 640px) {
-  .release-header,
   .pagination {
     align-items: stretch;
     flex-direction: column;
