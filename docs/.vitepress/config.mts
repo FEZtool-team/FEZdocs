@@ -239,9 +239,15 @@ export default defineConfig({
         ],
       },
 
-      { text: "Licensing", link: "/licensing" },
-      { text: "Team", link: "/team" },
-      { text: "Stay in Touch", link: "/contact" },
+      // Grouped so the bar still fits between 768px and 960px.
+      {
+        text: "About",
+        items: [
+          { text: "Team", link: "/team" },
+          { text: "Licensing", link: "/licensing" },
+          { text: "Stay in Touch", link: "/contact" },
+        ],
+      },
       { text: "feztool.com", link: "https://feztool.com/" },
     ],
 

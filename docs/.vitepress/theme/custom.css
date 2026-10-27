@@ -747,3 +747,9 @@
 .contact-card a {
   font-weight: 700;
 }
+
+/* Wide display formulas scroll inside their block instead of widening the page on phones. */
+.vp-doc .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
