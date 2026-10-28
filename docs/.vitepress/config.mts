@@ -1,10 +1,12 @@
 import { defineConfig, type HeadConfig, type PageData } from "vitepress";
 import markdownItKatex from "@iktakahiro/markdown-it-katex";
 
-const base = "/FEZdocs/";
+// Served from the custom domain docs.feztool.com (root). The old
+// feztool-team.github.io/FEZdocs/ address redirects to it via GitHub Pages.
+const base = "/";
 
-// FEZdocs stays on github.io; canonical, Open Graph and sitemap URLs are absolute.
-const siteUrl = `https://feztool-team.github.io${base}`;
+// Canonical, Open Graph and sitemap URLs are absolute.
+const siteUrl = `https://docs.feztool.com${base}`;
 const siteTitle = "FEZdocs";
 const siteDescription =
   "Documentation for FEZtool's open-source Earth-science tools: the FEZrs Python package for remote sensing and the FEZfm earthquake monitor.";
