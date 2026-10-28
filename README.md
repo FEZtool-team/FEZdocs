@@ -2,7 +2,7 @@
 
 FEZdocs is the centralized documentation platform for the FEZtool ecosystem — a growing collection of remote sensing, geospatial, image processing, and scientific Python tools developed by the FEZtool team.
 
-- **Read the docs:** https://feztool-team.github.io/FEZdocs/
+- **Read the docs:** https://docs.feztool.com/
 - **FEZtool website:** https://feztool.com/
 - **FEZfm earthquake monitor:** https://fezfm.feztool.com/
 
@@ -12,7 +12,7 @@ Built to be practical, developer-friendly, and easy to navigate, FEZdocs combine
 
 ## Overview
 
-This repository contains the official documentation for FEZtool libraries and related projects maintained by FEZtool: the [FEZrs](https://feztool-team.github.io/FEZdocs/libraries/fezrs/) Python package for remote sensing and the [FEZfm](https://feztool-team.github.io/FEZdocs/fezfm/) earthquake monitor.
+This repository contains the official documentation for FEZtool libraries and related projects maintained by FEZtool: the [FEZrs](https://docs.feztool.com/libraries/fezrs/) Python package for remote sensing and the [FEZfm](https://docs.feztool.com/fezfm/) earthquake monitor.
 
 The goal is simple:
 
